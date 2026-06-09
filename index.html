@@ -251,6 +251,7 @@ let liveMembers = DEFAULT_MEMBERS;
 let livePredictions = {};   // { name: { matchId: {h,a} } }
 let liveSubmitted = {};     // { name: { date: true } }
 let liveResults = {};       // { matchId: {h,a} }
+let liveUnlocked = {};      // { name: { date: true } } — admin unlocked for re-edit
 let liveLoaded = false;
 
 // ════════════════════════════════════════════════════════════════════
@@ -330,6 +331,10 @@ function initFirebase() {
       liveResults = snap.exists() ? snap.val() : {};
       tryRender();
     });
+    db.ref('unlocked').on('value', snap => {
+      liveUnlocked = snap.exists() ? snap.val() : {};
+      tryRender();
+    });
 
     liveLoaded = true;
     tryRender();
@@ -385,6 +390,10 @@ function leaderboard() {
 
 function hasSubmitted(name, date) {
   return !!(liveSubmitted[name] && liveSubmitted[name][date.replace(/-/g,'_')]);
+}
+
+function isUnlocked(name, date) {
+  return !!(liveUnlocked[name] && liveUnlocked[name][date.replace(/-/g,'_')]);
 }
 
 // ════════════════════════════════════════════════════════════════════
@@ -523,6 +532,7 @@ function renderPredict(tc) {
   const fixtures = FIXTURES.filter(f => f.date === activeDate);
   const passed = deadlinePassed();
   const submitted = hasSubmitted(me, activeDate);
+  const unlocked = isUnlocked(me, activeDate);
   const myPreds = livePredictions[me] || {};
 
   let h = `<div class="stats-grid">
@@ -541,7 +551,7 @@ function renderPredict(tc) {
 
   if (!fixtures.length) {
     h += `<div class="card"><div class="empty-state">No fixtures for ${fmtDate(activeDate)}<br>Check back later ⚽</div></div>`;
-  } else if (submitted) {
+  } else if (submitted && !unlocked) {
     h += `<div class="success-box">✅ Your predictions for <strong>${fmtDate(activeDate)}</strong> are locked in. Good luck!</div>`;
     h += `<div class="card"><p class="section-title">your locked predictions</p>`;
     fixtures.forEach(f => {
