@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WC 2026 Predictor</title>
+<title>WC 2026 Predictor - Lead and Leap</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: var(--font-sans, system-ui, sans-serif); background: var(--color-background-tertiary, #f5f5f5); color: var(--color-text-primary, #111); min-height: 100vh; }
@@ -677,7 +677,7 @@ function saveRes(id){
 function clearRes(id){ delete S.results[id]; save(); renderAdmin(document.getElementById('tc')); }
 function upd(i,field,val){ S.members[i][field]=val.trim(); save(); }
 function copyMsg(name,pin){
-  const msg=`Hi ${name}! 🏆\n\nYou're invited to our WC 2026 Office Prediction Contest!\n\n🔗 Open the app: [your-link-here]\n👤 Your name: ${name}\n🔑 Your PIN: ${pin}\n\nPredict tomorrow's match scores every day before 10 PM IST.\nMost points by July 19 wins!\n\nGood luck! ⚽`;
+  const msg=`Hi ${name}! 🏆\n\nYou're invited to Lead and Leap World Cup 2026 Prediction Contest!\n\n🔗 Open the link: https://ll-wc-prediction.vercel.app\n👤 Your name: ${name}\n🔑 Your PIN: ${pin}\n\nPredict tomorrow's match scores every day before 10 PM IST.\nMost points by July 19 wins!\n\nGood luck! ⚽`;
   navigator.clipboard?.writeText(msg).then(()=>alert('Message copied! Paste in WhatsApp to '+name)).catch(()=>alert('PIN for '+name+': '+pin));
 }
 
