@@ -647,10 +647,15 @@ function doSubmit() {
 
   // Save to Firebase
   const updates = {};
-  Object.entries(preds).forEach(([id, score]) => {
-    updates[`predictions/${me}/${id}`] = score;
-  });
-  updates[`submitted/${me}/${activeDate.replace(/-/g,'_')}`] = true;
+
+Object.entries(preds).forEach(([id, score]) => {
+  updates[`predictions/${me}/${id}`] = score;
+});
+
+updates[`submitted/${me}/${activeDate.replace(/-/g,'_')}`] = true;
+
+// AUTO LOCK AGAIN AFTER RE-SUBMIT
+updates[`unlocked/${me}/${activeDate.replace(/-/g,'_')}`] = null;
 
   db.ref().update(updates)
     .then(() => { renderTabContent(); })
@@ -702,16 +707,33 @@ function renderResults(tc) {
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px">`;
     liveMembers.forEach(m => {
-      const pred = (livePredictions[m.name]||{})[f.id];
-      if (!pred) return;
-      const pts = calcPts(pred, r);
-      const cls = pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':'b-wrong';
-      const isMe = m.name === me;
-      h += `<span style="font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;background:#f5f5f7;${isMe?'border:1.5px solid #185fa5;':''}">${m.name}: <strong>${pred.h}–${pred.a}</strong> <span class="badge ${cls}" style="font-size:10px;padding:1px 5px">+${pts}p</span></span>`;
-    });
-    h += `</div></div>`;
-  });
-  h += `</div>`;
+  const sub = hasSubmitted(m.name, activeDate);
+  const unlocked = isUnlocked(m.name, activeDate);
+  const av = avC(m.name);
+
+  h += `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
+    <div class="avatar" style="background:${av.bg};color:${av.tx};width:28px;height:28px;font-size:11px">${initials(m.name)}</div>
+
+    <span style="flex:1;font-size:13px;font-weight:500">${m.name}</span>
+
+    ${
+      sub
+      ? `<span class="badge ${unlocked ? 'b-open' : 'b-submitted'}">
+           ${unlocked ? '🔓 unlocked' : '✓ submitted'}
+         </span>`
+      : `<span class="badge b-closed">⏳ pending</span>`
+    }
+
+    ${
+      sub
+      ? `<button class="btn-sm"
+            onclick="toggleUnlock('${m.name}','${activeDate}',${unlocked})">
+            ${unlocked ? 'Lock' : 'Unlock'}
+         </button>`
+      : ''
+    }
+  </div>`;
+});
   tc.innerHTML = h;
 }
 
@@ -842,6 +864,24 @@ function updateMember(i, field, val) {
   updated[i] = {...updated[i], [field]: val.trim()};
   db.ref('members').set(updated)
     .catch(e => alert('Error: ' + e.message));
+}
+  function toggleUnlock(name, date, currentlyUnlocked) {
+  const key = date.replace(/-/g,'_');
+
+  if (currentlyUnlocked) {
+
+    // LOCK AGAIN
+    db.ref(`unlocked/${name}/${key}`)
+      .remove()
+      .catch(e => alert('Error: ' + e.message));
+
+  } else {
+
+    // UNLOCK USER
+    db.ref(`unlocked/${name}/${key}`)
+      .set(true)
+      .catch(e => alert('Error: ' + e.message));
+  }
 }
 
 function copyMsg(name, pin) {
