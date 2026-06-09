@@ -1,122 +1,157 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WC 2026 Predictor - Lead and Leap</title>
+<title>WC 2026 Office Predictor</title>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-sans, system-ui, sans-serif); background: var(--color-background-tertiary, #f5f5f5); color: var(--color-text-primary, #111); min-height: 100vh; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #111; min-height: 100vh; }
 .app { max-width: 820px; margin: 0 auto; padding: 1rem; }
-.header { text-align: center; padding: 1.2rem 1rem 0.4rem; margin-bottom: 1.2rem; }
-.header h1 { font-size: 21px; font-weight: 500; margin-bottom: 3px; }
-.header p { font-size: 13px; color: var(--color-text-secondary, #666); }
-.tabs { display: flex; gap: 3px; background: var(--color-background-secondary, #eee); padding: 4px; border-radius: 12px; margin-bottom: 1.25rem; overflow-x: auto; }
-.tab { flex: 1; min-width: 56px; padding: 7px 4px; font-size: 12px; font-weight: 500; background: transparent; border: none; cursor: pointer; border-radius: 8px; color: var(--color-text-secondary, #666); transition: all 0.15s; white-space: nowrap; }
-.tab.active { background: var(--color-background-primary, #fff); color: var(--color-text-primary, #111); border: 0.5px solid var(--color-border-tertiary, rgba(0,0,0,0.1)); }
-.card { background: var(--color-background-primary, #fff); border: 0.5px solid var(--color-border-tertiary, rgba(0,0,0,0.1)); border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 1rem; }
-.section-title { font-size: 11px; font-weight: 500; color: var(--color-text-secondary, #666); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem; }
+.header { text-align: center; padding: 1.4rem 1rem 0.5rem; margin-bottom: 1.2rem; }
+.header h1 { font-size: 22px; font-weight: 600; margin-bottom: 3px; letter-spacing: -0.3px; }
+.header p { font-size: 13px; color: #666; }
+.tabs { display: flex; gap: 3px; background: #e5e5ea; padding: 4px; border-radius: 12px; margin-bottom: 1.25rem; overflow-x: auto; }
+.tab { flex: 1; min-width: 56px; padding: 7px 4px; font-size: 12px; font-weight: 500; background: transparent; border: none; cursor: pointer; border-radius: 8px; color: #666; transition: all 0.15s; white-space: nowrap; }
+.tab.active { background: #fff; color: #111; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+.card { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 14px; padding: 1rem 1.2rem; margin-bottom: 1rem; }
+.section-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 1rem; }
+
 /* LOGIN */
 .login-wrap { max-width: 360px; margin: 1rem auto; }
-.login-wrap h2 { font-size: 18px; font-weight: 500; margin-bottom: 5px; }
-.login-wrap .sub { font-size: 13px; color: var(--color-text-secondary, #666); margin-bottom: 1.2rem; }
-.field-label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary, #666); margin-bottom: 5px; }
-.inp { width: 100%; padding: 9px 13px; font-size: 14px; border: 0.5px solid var(--color-border-secondary, rgba(0,0,0,0.2)); border-radius: 8px; background: var(--color-background-primary, #fff); color: var(--color-text-primary, #111); margin-bottom: 10px; }
-.inp:focus { outline: none; border-color: #185fa5; box-shadow: 0 0 0 2px rgba(55,138,221,0.1); }
+.login-wrap h2 { font-size: 19px; font-weight: 600; margin-bottom: 5px; letter-spacing: -0.3px; }
+.login-wrap .sub { font-size: 13px; color: #666; margin-bottom: 1.2rem; }
+.field-label { font-size: 12px; font-weight: 500; color: #666; margin-bottom: 5px; }
+.inp { width: 100%; padding: 10px 13px; font-size: 14px; border: 1px solid rgba(0,0,0,0.18); border-radius: 10px; background: #fff; color: #111; margin-bottom: 10px; }
+.inp:focus { outline: none; border-color: #185fa5; box-shadow: 0 0 0 3px rgba(24,95,165,0.1); }
 select.inp { cursor: pointer; }
-.pin-row { display: flex; gap: 8px; margin-bottom: 10px; }
-.pin-d { width: 50px; height: 50px; text-align: center; font-size: 20px; font-weight: 500; border: 0.5px solid var(--color-border-secondary, rgba(0,0,0,0.2)); border-radius: 8px; background: var(--color-background-primary, #fff); color: var(--color-text-primary, #111); }
-.pin-d:focus { outline: none; border-color: #185fa5; box-shadow: 0 0 0 2px rgba(55,138,221,0.1); }
-.btn-primary { width: 100%; padding: 10px; font-size: 14px; font-weight: 500; background: #185fa5; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+.pin-row { display: flex; gap: 10px; margin-bottom: 12px; justify-content: center; }
+.pin-d { width: 54px; height: 54px; text-align: center; font-size: 22px; font-weight: 600; border: 1px solid rgba(0,0,0,0.18); border-radius: 10px; background: #fff; color: #111; }
+.pin-d:focus { outline: none; border-color: #185fa5; box-shadow: 0 0 0 3px rgba(24,95,165,0.1); }
+.btn-primary { width: 100%; padding: 11px; font-size: 15px; font-weight: 600; background: #185fa5; color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: opacity 0.15s; letter-spacing: -0.2px; }
 .btn-primary:hover { opacity: 0.88; }
-.btn-sm { padding: 5px 11px; font-size: 12px; font-weight: 500; background: transparent; color: var(--color-text-primary, #111); border: 0.5px solid var(--color-border-secondary, rgba(0,0,0,0.2)); border-radius: 6px; cursor: pointer; }
-.btn-sm:hover { background: var(--color-background-secondary, #eee); }
-.btn-submit { padding: 10px 28px; font-size: 14px; font-weight: 500; background: #185fa5; color: #fff; border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.15s; }
+.btn-sm { padding: 5px 11px; font-size: 12px; font-weight: 500; background: transparent; color: #111; border: 1px solid rgba(0,0,0,0.18); border-radius: 7px; cursor: pointer; }
+.btn-sm:hover { background: #f0f0f0; }
+.btn-submit { padding: 11px 28px; font-size: 14px; font-weight: 600; background: #1a7f37; color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: opacity 0.15s; }
 .btn-submit:hover { opacity: 0.88; }
-.btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
-.error-msg { font-size: 13px; color: #a32d2d; background: #fcebeb; padding: 8px 12px; border-radius: 6px; margin-bottom: 10px; }
-.info-box { background: #e6f1fb; border-radius: 8px; padding: 10px 13px; font-size: 13px; color: #0c447c; margin-bottom: 1rem; line-height: 1.6; }
-.warn-box { background: #faeeda; border-radius: 8px; padding: 10px 13px; font-size: 13px; color: #633806; margin-bottom: 1rem; line-height: 1.6; }
-.success-box { background: #eaf3de; border-radius: 8px; padding: 10px 13px; font-size: 13px; color: #3b6d11; margin-bottom: 1rem; line-height: 1.6; }
-/* FIXTURE ROWS */
-.fixture-card { border: 0.5px solid var(--color-border-tertiary, rgba(0,0,0,0.08)); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; background: var(--color-background-primary, #fff); }
-.fixture-card.submitted { background: var(--color-background-secondary, #f8f8f8); }
-.fix-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.fix-group { font-size: 11px; font-weight: 500; color: var(--color-text-secondary, #666); }
-.fix-time { font-size: 11px; color: var(--color-text-secondary, #666); }
-.fix-teams { display: flex; align-items: center; gap: 10px; }
-.fix-team { flex: 1; font-size: 14px; font-weight: 500; }
-.fix-team.away { text-align: right; }
-.score-box { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.sinp { width: 40px; height: 38px; text-align: center; font-size: 16px; font-weight: 500; border: 0.5px solid var(--color-border-secondary, rgba(0,0,0,0.2)); border-radius: 6px; background: var(--color-background-primary, #fff); color: var(--color-text-primary, #111); padding: 0; }
-.sinp:focus { outline: none; border-color: #185fa5; }
-.sinp:disabled { background: var(--color-background-secondary, #f0f0f0); color: var(--color-text-secondary, #666); border-color: var(--color-border-tertiary, rgba(0,0,0,0.1)); }
-.vsep { font-size: 14px; color: var(--color-text-secondary, #666); font-weight: 500; }
-.result-display { font-size: 18px; font-weight: 500; color: #185fa5; letter-spacing: 2px; }
+.error-msg { font-size: 13px; color: #a32d2d; background: #fcebeb; padding: 9px 12px; border-radius: 8px; margin-bottom: 10px; }
+.info-box { background: #e6f1fb; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: #0c447c; margin-bottom: 1rem; line-height: 1.6; }
+.warn-box { background: #fff8e1; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: #7a5100; margin-bottom: 1rem; line-height: 1.6; border: 1px solid #ffe082; }
+.success-box { background: #e8f5e9; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: #1a5c2a; margin-bottom: 1rem; line-height: 1.6; border: 1px solid #a5d6a7; }
+.danger-box { background: #fcebeb; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: #a32d2d; margin-bottom: 1rem; line-height: 1.6; }
+
+/* FIXTURE CARDS */
+.fixture-card { border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; background: #fff; transition: border-color 0.15s; }
+.fixture-card:focus-within { border-color: #185fa5; }
+.fixture-card.locked { background: #fafafa; }
+.fix-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.fix-group { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+.fix-time { font-size: 11px; color: #888; }
+.fix-body { display: flex; align-items: center; gap: 10px; }
+.fix-team { flex: 1; font-size: 14px; font-weight: 600; }
+.fix-team.right { text-align: right; }
+.score-box { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+.sinp { width: 42px; height: 40px; text-align: center; font-size: 17px; font-weight: 600; border: 1px solid rgba(0,0,0,0.18); border-radius: 8px; background: #fff; color: #111; padding: 0; }
+.sinp:focus { outline: none; border-color: #185fa5; box-shadow: 0 0 0 2px rgba(24,95,165,0.1); }
+.sinp:disabled { background: #f5f5f5; color: #888; border-color: rgba(0,0,0,0.1); cursor: not-allowed; }
+.vsep { font-size: 15px; color: #bbb; font-weight: 600; }
+.pred-locked { font-size: 17px; font-weight: 600; color: #185fa5; letter-spacing: 3px; }
+
 /* BADGES */
-.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 100px; font-weight: 500; }
-.b-open { background: #eaf3de; color: #3b6d11; }
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 100px; font-weight: 600; }
+.b-open { background: #e8f5e9; color: #1a5c2a; }
 .b-closed { background: #fcebeb; color: #a32d2d; }
 .b-submitted { background: #e6f1fb; color: #0c447c; }
-.b-exact { background: #eaf3de; color: #27500a; }
+.b-exact { background: #e8f5e9; color: #1a5c2a; }
 .b-correct { background: #e6f1fb; color: #0c447c; }
-.b-partial { background: #faeeda; color: #633806; }
+.b-partial { background: #fff8e1; color: #7a5100; }
 .b-wrong { background: #fcebeb; color: #a32d2d; }
+
 /* LEADERBOARD */
-.lb-row { display: flex; align-items: center; gap: 10px; padding: 9px 6px; border-radius: 8px; }
+.lb-row { display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 10px; margin: 0 -8px; }
 .lb-row.me { background: #e6f1fb; }
 .lb-rank { font-size: 15px; width: 28px; text-align: center; flex-shrink: 0; }
-.avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; }
+.avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
 .lb-info { flex: 1; min-width: 0; }
-.lb-name { font-size: 14px; font-weight: 500; }
-.lb-sub { font-size: 11px; color: var(--color-text-secondary, #666); margin-top: 1px; }
-.lb-pts { font-size: 20px; font-weight: 500; color: #185fa5; text-align: right; }
-.lb-ptslabel { font-size: 10px; color: var(--color-text-secondary, #666); text-align: right; }
-.you-pill { font-size: 10px; padding: 1px 6px; border-radius: 100px; background: #e6f1fb; color: #185fa5; margin-left: 4px; vertical-align: middle; }
+.lb-name { font-size: 14px; font-weight: 600; }
+.lb-sub { font-size: 11px; color: #888; margin-top: 1px; }
+.lb-pts { font-size: 22px; font-weight: 700; color: #185fa5; text-align: right; }
+.lb-ptslabel { font-size: 10px; color: #888; text-align: right; }
+.you-pill { font-size: 10px; padding: 1px 6px; border-radius: 100px; background: #e6f1fb; color: #185fa5; margin-left: 5px; font-weight: 600; vertical-align: middle; }
+
 /* STATS */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1rem; }
-.stat-card { background: var(--color-background-secondary, #f0f0f0); border-radius: 8px; padding: 10px; text-align: center; }
-.stat-num { font-size: 22px; font-weight: 500; color: #185fa5; }
-.stat-label { font-size: 11px; color: var(--color-text-secondary, #666); margin-top: 2px; }
-/* ADMIN */
-.admin-fix-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary, rgba(0,0,0,0.05)); font-size: 13px; }
+.stat-card { background: #f5f5f7; border-radius: 10px; padding: 10px; text-align: center; }
+.stat-num { font-size: 24px; font-weight: 700; color: #185fa5; }
+.stat-label { font-size: 11px; color: #888; margin-top: 2px; }
+
+/* DEADLINE BAR */
+.deadline-bar { display: flex; align-items: center; justify-content: space-between; background: #f5f5f7; border-radius: 10px; padding: 10px 14px; margin-bottom: 1rem; border: 1px solid rgba(0,0,0,0.06); }
+.dl-label { font-size: 11px; color: #888; }
+.dl-val { font-size: 14px; font-weight: 600; }
+.countdown { font-family: 'SF Mono', 'Fira Mono', monospace; font-size: 16px; font-weight: 700; color: #185fa5; }
+.countdown.urgent { color: #c0392b; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+/* ADMIN TABLE */
+.admin-fix-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 13px; }
 .admin-fix-row:last-child { border-bottom: none; }
 .ateams { flex: 1; font-size: 13px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rinp { width: 38px; height: 32px; text-align: center; font-size: 13px; font-weight: 500; border: 0.5px solid var(--color-border-secondary, rgba(0,0,0,0.2)); border-radius: 6px; background: var(--color-background-primary, #fff); color: var(--color-text-primary, #111); padding: 0; }
+.rinp { width: 40px; height: 34px; text-align: center; font-size: 14px; font-weight: 600; border: 1px solid rgba(0,0,0,0.18); border-radius: 7px; background: #fff; color: #111; padding: 0; }
 .rinp:focus { outline: none; border-color: #185fa5; }
-.btn-save { padding: 5px 11px; font-size: 12px; font-weight: 500; background: #185fa5; color: #fff; border: none; border-radius: 6px; cursor: pointer; }
-.entered-tag { font-size: 12px; color: #3b6d11; background: #eaf3de; padding: 2px 8px; border-radius: 100px; }
+.btn-save { padding: 6px 12px; font-size: 12px; font-weight: 600; background: #185fa5; color: #fff; border: none; border-radius: 7px; cursor: pointer; }
+.btn-save:hover { opacity: 0.88; }
+.entered-tag { font-size: 12px; color: #1a5c2a; background: #e8f5e9; padding: 3px 9px; border-radius: 100px; font-weight: 600; }
 .member-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.member-table th { text-align: left; font-size: 11px; font-weight: 500; color: var(--color-text-secondary,#666); padding: 5px 6px; border-bottom: 0.5px solid var(--color-border-tertiary,rgba(0,0,0,0.1)); }
-.member-table td { padding: 7px 6px; border-bottom: 0.5px solid var(--color-border-tertiary,rgba(0,0,0,0.05)); vertical-align: middle; }
+.member-table th { text-align: left; font-size: 11px; font-weight: 600; color: #888; padding: 6px 8px; border-bottom: 1px solid rgba(0,0,0,0.08); }
+.member-table td { padding: 8px 8px; border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: middle; }
 .member-table tr:last-child td { border-bottom: none; }
-.pin-mono { font-family: var(--font-mono, monospace); font-size: 14px; font-weight: 500; color: #185fa5; letter-spacing: 2px; }
-.copy-btn { font-size: 11px; padding: 3px 8px; border-radius: 4px; background: var(--color-background-secondary,#eee); border: 0.5px solid var(--color-border-tertiary,rgba(0,0,0,0.1)); cursor: pointer; color: var(--color-text-secondary,#666); }
-.edit-inp { padding: 5px 8px; font-size: 12px; border: 0.5px solid var(--color-border-secondary,rgba(0,0,0,0.2)); border-radius: 5px; background: var(--color-background-primary,#fff); color: var(--color-text-primary,#111); }
+.edit-inp { padding: 5px 8px; font-size: 12px; border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; background: #fff; color: #111; }
 .edit-inp:focus { outline: none; border-color: #185fa5; }
-/* deadline bar */
-.deadline-bar { display: flex; align-items: center; justify-content: space-between; background: var(--color-background-secondary,#eee); border-radius: 8px; padding: 10px 14px; margin-bottom: 1rem; font-size: 13px; }
-.dl-label { font-size: 12px; color: var(--color-text-secondary,#666); }
-.dl-date { font-size: 14px; font-weight: 500; }
-.countdown { font-family: var(--font-mono, monospace); font-size: 15px; font-weight: 500; color: #185fa5; }
-.countdown.urgent { color: #a32d2d; }
+.copy-btn { font-size: 11px; padding: 3px 9px; border-radius: 5px; background: #f0f0f0; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; color: #555; font-weight: 500; }
+.copy-btn:hover { background: #e0e0e0; }
+
+/* LOADING */
+.loading { display: flex; align-items: center; justify-content: center; padding: 3rem; flex-direction: column; gap: 12px; }
+.spinner { width: 32px; height: 32px; border: 3px solid #e0e0e0; border-top-color: #185fa5; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { text-align: center; padding: 2.5rem 1rem; color: #888; font-size: 14px; }
 </style>
 </head>
 <body>
 <div class="app">
-<div class="header">
-  <div style="font-size:32px;margin-bottom:6px">🏆</div>
-  <h1>World Cup 2026 Predictor - Lead and Leap</h1>
-  <p>Calicut · June 11 – July 19, 2026</p>
-</div>
-<div id="root"></div>
+  <div class="header">
+    <div style="font-size:34px;margin-bottom:6px">🏆</div>
+    <h1>WC 2026 Office Predictor</h1>
+    <p>Calicut · June 12 – July 19, 2026</p>
+  </div>
+  <div id="root"><div class="loading"><div class="spinner"></div><span style="font-size:14px;color:#888">Connecting...</span></div></div>
 </div>
 
 <script>
-const SK = 'wc2026_v4';
+// ════════════════════════════════════════════════════════════════════
+// FIREBASE CONFIG — Replace with your own Firebase project config
+// Get this from: Firebase Console → Project Settings → Your Apps → SDK setup
+// ════════════════════════════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD1izkHZDaxbSQhMQg5IZtLx3zCamu94xk",
+  authDomain: "wc2026-predictor-34614.firebaseapp.com",
+  databaseURL: "https://wc2026-predictor-34614-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "wc2026-predictor-34614",
+  storageBucket: "wc2026-predictor-34614.firebasestorage.app",
+  messagingSenderId: "79594953661",
+  appId: "1:79594953661:web:1c2ff535ef1338fd5610d4",
+  measurementId: "G-WMWL8F4V9R"
+};
 
-// ── FIXTURES (admin enters results; date = match date) ────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// FIXTURES
+// ════════════════════════════════════════════════════════════════════
 const FIXTURES = [
   {id:1,date:'2026-06-12',group:'A',home:'Mexico',away:'South Africa',ist:'00:30'},
   {id:2,date:'2026-06-12',group:'A',home:'South Korea',away:'Czechia',ist:'07:30'},
@@ -203,132 +238,226 @@ const DEFAULT_MEMBERS = [
 ];
 const ADMIN_PIN = '9999';
 
-function load() {
-  try { const r = localStorage.getItem(SK); if(r) return JSON.parse(r); } catch(e){}
-  return { members: DEFAULT_MEMBERS, predictions:{}, submitted:{}, results:{}, session:null, adminSession:false };
-}
-function save() { try { localStorage.setItem(SK, JSON.stringify(S)); } catch(e){} }
-let S = load();
+// ════════════════════════════════════════════════════════════════════
+// APP STATE — all live data comes from Firebase
+// ════════════════════════════════════════════════════════════════════
+let db;
+let session = JSON.parse(sessionStorage.getItem('wc_session') || 'null');
 let tab = 'predict';
+let countdownTimer = null;
 
-// ── CORE LOGIC ────────────────────────────────────────────────────────────────
+// Live data from Firebase (updated via listeners)
+let liveMembers = DEFAULT_MEMBERS;
+let livePredictions = {};   // { name: { matchId: {h,a} } }
+let liveSubmitted = {};     // { name: { date: true } }
+let liveResults = {};       // { matchId: {h,a} }
+let liveLoaded = false;
 
-// Deadline for a given match date = 10 PM IST (16:30 UTC) of the PREVIOUS day
-function deadlineFor(matchDate) {
+// ════════════════════════════════════════════════════════════════════
+// DATE / DEADLINE LOGIC
+// ════════════════════════════════════════════════════════════════════
+
+// ── TESTING OVERRIDE ──────────────────────────────────────────────
+// June 12 fixtures are LIVE NOW for testing.
+// On June 11 night remove the override line below and the app
+// will automatically show the correct date based on 10 PM IST deadline.
+// ─────────────────────────────────────────────────────────────────
+function getActivePredictionDate() {
+  return '2026-06-12'; // ← TESTING OVERRIDE: remove this line on June 11 to go live
+  // --- normal logic below (auto-runs after removing line above) ---
+  const now = new Date();
+  const ist = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
+  const h = ist.getUTCHours() + ist.getUTCMinutes() / 60;
+  const tomorrow = new Date(ist.getTime() + 24 * 60 * 60 * 1000);
+  const pad = n => String(n).padStart(2, '0');
+  const fmt = d => `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
+  // After 10 PM show day-after-tomorrow; before 10 PM show tomorrow
+  if (h >= 22) {
+    const dat = new Date(ist.getTime() + 48 * 60 * 60 * 1000);
+    return fmt(dat);
+  }
+  return fmt(tomorrow);
+}
+
+function getDeadline(matchDate) {
+  // 10 PM IST of the day before = 16:30 UTC of the day before
   const d = new Date(matchDate + 'T16:30:00Z');
   d.setDate(d.getDate() - 1);
   return d;
 }
 
-// Which match-date should we show for predictions right now?
-// After 10 PM IST → show next day's matches
-// Before 10 PM IST → show tomorrow's matches (= next day from today)
-function getActivePredictionDate() {
-  const now = new Date();
-  // IST = UTC+5:30
-  const istOffset = 5.5 * 60 * 60 * 1000;
-  const istNow = new Date(now.getTime() + istOffset);
-  const istHour = istNow.getUTCHours() + istNow.getUTCMinutes()/60;
-  // IST date string
-  const y = istNow.getUTCFullYear();
-  const m = String(istNow.getUTCMonth()+1).padStart(2,'0');
-  const d = String(istNow.getUTCDate()).padStart(2,'0');
-  const todayIST = `${y}-${m}-${d}`;
+function deadlinePassed() {
+  // During testing always return false so predictions stay open
+  return false; // ← TESTING OVERRIDE: remove this line on June 11
+  return new Date() > getDeadline(getActivePredictionDate());
+}
 
-  if(istHour >= 22) {
-    // After 10 PM → show day-after-tomorrow's matches
-    const tomorrow = new Date(istNow.getTime() + 24*60*60*1000);
-    const ty = tomorrow.getUTCFullYear();
-    const tm = String(tomorrow.getUTCMonth()+1).padStart(2,'0');
-    const td = String(tomorrow.getUTCDate()).padStart(2,'0');
-    return `${ty}-${tm}-${td}`;
-  } else {
-    // Before 10 PM → show tomorrow's matches
-    const tomorrow = new Date(istNow.getTime() + 24*60*60*1000);
-    const ty = tomorrow.getUTCFullYear();
-    const tm = String(tomorrow.getUTCMonth()+1).padStart(2,'0');
-    const td = String(tomorrow.getUTCDate()).padStart(2,'0');
-    return `${ty}-${tm}-${td}`;
+function fmtDate(ds) {
+  return new Date(ds + 'T12:00:00').toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long'});
+}
+
+// ════════════════════════════════════════════════════════════════════
+// FIREBASE INIT + LISTENERS
+// ════════════════════════════════════════════════════════════════════
+function initFirebase() {
+  try {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.database();
+
+    // Seed members if not yet in DB
+    db.ref('members').once('value', snap => {
+      if (!snap.exists()) {
+        db.ref('members').set(DEFAULT_MEMBERS);
+      } else {
+        liveMembers = snap.val();
+      }
+    });
+
+    // Live listeners
+    db.ref('members').on('value', snap => {
+      if (snap.exists()) liveMembers = snap.val();
+      tryRender();
+    });
+    db.ref('predictions').on('value', snap => {
+      livePredictions = snap.exists() ? snap.val() : {};
+      tryRender();
+    });
+    db.ref('submitted').on('value', snap => {
+      liveSubmitted = snap.exists() ? snap.val() : {};
+      tryRender();
+    });
+    db.ref('results').on('value', snap => {
+      liveResults = snap.exists() ? snap.val() : {};
+      tryRender();
+    });
+
+    liveLoaded = true;
+    tryRender();
+  } catch(e) {
+    console.error('Firebase init failed:', e);
+    document.getElementById('root').innerHTML = `
+      <div class="card" style="max-width:420px;margin:2rem auto;text-align:center">
+        <div style="font-size:28px;margin-bottom:10px">⚙️</div>
+        <h2 style="font-size:17px;margin-bottom:8px">Firebase not configured</h2>
+        <p style="font-size:13px;color:#666;line-height:1.6">Open <code>index.html</code> and replace <code>FIREBASE_CONFIG</code> with your Firebase project details.<br><br>See <code>SETUP.md</code> for step-by-step instructions.</p>
+      </div>`;
   }
 }
 
-function getDeadlineForActiveDate() {
-  const ad = getActivePredictionDate();
-  return deadlineFor(ad);
+function tryRender() {
+  if (!liveLoaded) return;
+  render();
 }
 
-function isDeadlinePassed() {
-  return new Date() > getDeadlineForActiveDate();
-}
-
-function getTodayFixtures() {
-  const activeDate = getActivePredictionDate();
-  return FIXTURES.filter(f => f.date === activeDate);
-}
-
-function hasSubmitted(name, date) {
-  return !!(S.submitted[name] && S.submitted[name][date]);
-}
-
+// ════════════════════════════════════════════════════════════════════
+// SCORING
+// ════════════════════════════════════════════════════════════════════
 function calcPts(p, r) {
-  if(!p || !r) return null;
+  if (!p || !r) return null;
   const ph=+p.h, pa=+p.a, rh=+r.h, ra=+r.a;
-  if(isNaN(ph)||isNaN(pa)) return null;
-  if(ph===rh && pa===ra) return 5;
+  if (isNaN(ph)||isNaN(pa)) return null;
+  if (ph===rh && pa===ra) return 5;
   const po=ph>pa?'H':ph<pa?'A':'D', ro=rh>ra?'H':rh<ra?'A':'D';
-  if(po===ro) return 3;
-  if((ph-pa)===(rh-ra)) return 1;
+  if (po===ro) return 3;
+  if ((ph-pa)===(rh-ra)) return 1;
   return 0;
 }
 
 function memberStats(name) {
   let total=0, correct=0, exact=0, played=0;
   FIXTURES.forEach(f => {
-    const r=S.results[f.id], p=(S.predictions[name]||{})[f.id];
-    if(r && p) { played++; const pts=calcPts(p,r); if(pts!==null){total+=pts; if(pts>=3)correct++; if(pts===5)exact++;} }
+    const r = liveResults[f.id];
+    const p = (livePredictions[name]||{})[f.id];
+    if (r && p) {
+      played++;
+      const pts = calcPts(p, r);
+      if (pts !== null) { total+=pts; if(pts>=3)correct++; if(pts===5)exact++; }
+    }
   });
-  return {total,correct,exact,played};
+  return {total, correct, exact, played};
 }
 
 function leaderboard() {
-  return S.members
+  return liveMembers
     .map(m => ({...m, ...memberStats(m.name)}))
     .sort((a,b) => b.total-a.total || b.correct-a.correct || b.exact-a.exact);
 }
 
-const AV_BG=['#e6f1fb','#eaf3de','#faeeda','#faece7','#fbeaf0','#eeedfe','#e1f5ee'];
-const AV_TX=['#0c447c','#27500a','#633806','#712b13','#72243e','#3c3489','#085041'];
+function hasSubmitted(name, date) {
+  return !!(liveSubmitted[name] && liveSubmitted[name][date.replace(/-/g,'_')]);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// AVATAR COLORS
+// ════════════════════════════════════════════════════════════════════
+const AV_BG=['#e6f1fb','#e8f5e9','#fff8e1','#fce4ec','#f3e5f5','#e0f7fa','#fff3e0'];
+const AV_TX=['#0c447c','#1a5c2a','#7a5100','#880e4f','#4a148c','#006064','#e65100'];
 function avC(name){let h=0;for(let c of name)h=(h*31+c.charCodeAt(0))%7;return{bg:AV_BG[h],tx:AV_TX[h]};}
 function initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
 
-function fmtDate(ds) {
-  return new Date(ds+'T12:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
-}
-function fmtDeadline(dt) {
-  return dt.toLocaleString('en-IN',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata'});
-}
-
-// ── RENDER ────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// RENDER SHELL
+// ════════════════════════════════════════════════════════════════════
 function render() {
   const root = document.getElementById('root');
-  if(!S.session && !S.adminSession){ renderLogin(root); return; }
+  if (!session) { renderLogin(root); return; }
   renderApp(root);
 }
 
+function setTab(t) {
+  tab = t;
+  document.querySelectorAll('.tab').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === t);
+  });
+  renderTabContent();
+}
+
+function renderApp(root) {
+  const isAdmin = session.admin;
+  const tabs = isAdmin
+    ? [['admin','⚙️ Admin'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']]
+    : [['predict','⚽ Predict'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']];
+
+  // Only rebuild shell if not already there
+  if (!document.getElementById('tc')) {
+    root.innerHTML = `
+      <div class="tabs">${tabs.map(([id,lbl])=>`<button class="tab ${tab===id?'active':''}" data-tab="${id}" onclick="setTab('${id}')">${lbl}</button>`).join('')}</div>
+      <div id="tc"></div>
+      <div style="text-align:center;margin-top:8px">
+        <span style="font-size:12px;color:#888">${isAdmin?'Admin session':'Signed in as <strong>'+session.name+'</strong>'}</span>
+        <button class="btn-sm" onclick="doLogout()" style="margin-left:8px;font-size:11px;padding:3px 9px">Sign out</button>
+      </div>`;
+  }
+  renderTabContent();
+}
+
+function renderTabContent() {
+  const tc = document.getElementById('tc');
+  if (!tc) return;
+  if (tab==='predict' && !session.admin) renderPredict(tc);
+  else if (tab==='leaderboard') renderLeaderboard(tc);
+  else if (tab==='results') renderResults(tc);
+  else if (tab==='rules') renderRules(tc);
+  else if (tab==='admin' && session.admin) renderAdmin(tc);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════════════════════════════════
 function renderLogin(root) {
   root.innerHTML = `
   <div class="login-wrap">
     <div class="card">
       <div style="text-align:center;margin-bottom:1.1rem">
-        <div style="font-size:26px;margin-bottom:5px">🔐</div>
+        <div style="font-size:28px;margin-bottom:5px">🔐</div>
         <h2>Sign in to play</h2>
         <p class="sub">Select your name and enter your 4-digit PIN</p>
       </div>
       <div id="lerr"></div>
       <div class="field-label">Your name</div>
       <select id="sel" class="inp">
-        <option value="">Choose name...</option>
-        ${S.members.map(m=>`<option value="${m.name}">${m.name}</option>`).join('')}
+        <option value="">Choose your name...</option>
+        ${liveMembers.map(m=>`<option value="${m.name}">${m.name}</option>`).join('')}
         <option value="__admin__">⚙️ Admin</option>
       </select>
       <div class="field-label">PIN</div>
@@ -337,145 +466,132 @@ function renderLogin(root) {
       </div>
       <button class="btn-primary" onclick="doLogin()">Enter ⚽</button>
     </div>
-    <div class="info-box" style="margin-top:.8rem">Your PIN was shared by the admin (Irfan). Each person has a unique 4-digit PIN. Contact Irfan if you need yours.</div>
+    <div class="info-box" style="margin-top:.8rem">
+      Your PIN was shared by the admin (Irfan). Each person has a unique 4-digit PIN. Contact Irfan if you need yours.
+    </div>
   </div>`;
-  for(let i=0;i<4;i++){
-    const el=document.getElementById('p'+i);
-    el.addEventListener('input',()=>{if(el.value&&i<3)document.getElementById('p'+(i+1)).focus();});
-    el.addEventListener('keydown',e=>{if(e.key==='Backspace'&&!el.value&&i>0)document.getElementById('p'+(i-1)).focus();});
+
+  for (let i=0; i<4; i++) {
+    const el = document.getElementById('p'+i);
+    el.addEventListener('input', () => { if(el.value && i<3) document.getElementById('p'+(i+1)).focus(); });
+    el.addEventListener('keydown', e => { if(e.key==='Backspace' && !el.value && i>0) document.getElementById('p'+(i-1)).focus(); });
   }
 }
 
 function doLogin() {
-  const name=document.getElementById('sel').value;
-  const pin=[0,1,2,3].map(i=>document.getElementById('p'+i).value).join('');
-  const err=document.getElementById('lerr');
-  if(!name){err.innerHTML='<div class="error-msg">Please select your name.</div>';return;}
-  if(pin.length<4){err.innerHTML='<div class="error-msg">Enter your full 4-digit PIN.</div>';return;}
-  if(name==='__admin__'){
-    if(pin===ADMIN_PIN){S.adminSession=true;S.session=null;tab='admin';save();render();return;}
-    err.innerHTML='<div class="error-msg">Wrong admin PIN.</div>';return;
+  const name = document.getElementById('sel').value;
+  const pin = [0,1,2,3].map(i => document.getElementById('p'+i).value).join('');
+  const err = document.getElementById('lerr');
+  if (!name) { err.innerHTML='<div class="error-msg">Please select your name.</div>'; return; }
+  if (pin.length < 4) { err.innerHTML='<div class="error-msg">Enter your full 4-digit PIN.</div>'; return; }
+  if (name === '__admin__') {
+    if (pin === ADMIN_PIN) {
+      session = {admin:true};
+      sessionStorage.setItem('wc_session', JSON.stringify(session));
+      tab = 'admin';
+      document.getElementById('root').innerHTML = '';
+      render(); return;
+    }
+    err.innerHTML='<div class="error-msg">Wrong admin PIN.</div>'; return;
   }
-  const member=S.members.find(m=>m.name===name);
-  if(!member){err.innerHTML='<div class="error-msg">Name not found.</div>';return;}
-  if(member.pin!==pin){err.innerHTML='<div class="error-msg">Wrong PIN. Contact Irfan if you forgot it.</div>';return;}
-  S.session=name;S.adminSession=false;tab='predict';save();render();
+  const member = liveMembers.find(m => m.name === name);
+  if (!member) { err.innerHTML='<div class="error-msg">Name not found.</div>'; return; }
+  if (member.pin !== pin) { err.innerHTML='<div class="error-msg">Wrong PIN. Contact Irfan if you forgot it.</div>'; return; }
+  session = {name, admin:false};
+  sessionStorage.setItem('wc_session', JSON.stringify(session));
+  tab = 'predict';
+  document.getElementById('root').innerHTML = '';
+  render();
 }
 
-function doLogout(){S.session=null;S.adminSession=false;save();render();}
-
-function renderApp(root) {
-  const isAdmin=S.adminSession;
-  const tabs=isAdmin
-    ?[['admin','⚙️ Admin'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']]
-    :[['predict','⚽ Predict'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']];
-  root.innerHTML=`
-  <div class="tabs">${tabs.map(([id,lbl])=>`<button class="tab ${tab===id?'active':''}" onclick="switchTab('${id}')">${lbl}</button>`).join('')}</div>
-  <div id="tc"></div>
-  <div style="text-align:center;margin-top:6px">
-    <span style="font-size:12px;color:var(--color-text-secondary,#666)">${isAdmin?'Admin session':'Signed in as <strong>'+S.session+'</strong>'}</span>
-    <button class="btn-sm" onclick="doLogout()" style="margin-left:8px;font-size:11px;padding:3px 9px">Sign out</button>
-  </div>`;
-  switchTab(tab, true);
+function doLogout() {
+  session = null;
+  sessionStorage.removeItem('wc_session');
+  document.getElementById('root').innerHTML = '';
+  render();
 }
 
-function switchTab(t, skipSet) {
-  if(!skipSet) tab=t;
-  // re-render tabs active state
-  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active', el.textContent.includes(t==='predict'?'⚽':t==='leaderboard'?'🏆':t==='results'?'📊':t==='rules'?'📋':'⚙️')));
-  const tc=document.getElementById('tc');
-  if(!tc) return;
-  if(t==='predict') renderPredict(tc);
-  else if(t==='leaderboard') renderLeaderboard(tc);
-  else if(t==='results') renderResults(tc);
-  else if(t==='rules') renderRules(tc);
-  else if(t==='admin') renderAdmin(tc);
-}
-
-// ── PREDICT TAB ───────────────────────────────────────────────────────────────
-let countdownTimer = null;
-
+// ════════════════════════════════════════════════════════════════════
+// PREDICT TAB
+// ════════════════════════════════════════════════════════════════════
 function renderPredict(tc) {
-  const me = S.session;
-  const {total,correct,exact} = memberStats(me);
+  const me = session.name;
+  const {total, correct, exact} = memberStats(me);
   const lb = leaderboard();
-  const rank = lb.findIndex(r=>r.name===me)+1;
+  const rank = lb.findIndex(r => r.name === me) + 1;
   const activeDate = getActivePredictionDate();
-  const fixtures = getTodayFixtures();
-  const deadline = getDeadlineForActiveDate();
-  const passed = isDeadlinePassed();
+  const fixtures = FIXTURES.filter(f => f.date === activeDate);
+  const passed = deadlinePassed();
   const submitted = hasSubmitted(me, activeDate);
+  const myPreds = livePredictions[me] || {};
 
   let h = `<div class="stats-grid">
     <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">points</div></div>
-    <div class="stat-card"><div class="stat-num">${rank?'#'+rank:'-'}</div><div class="stat-label">rank</div></div>
+    <div class="stat-card"><div class="stat-num">${rank ? '#'+rank : '-'}</div><div class="stat-label">rank</div></div>
     <div class="stat-card"><div class="stat-num">${correct}</div><div class="stat-label">correct</div></div>
     <div class="stat-card"><div class="stat-num">${exact}</div><div class="stat-label">exact scores</div></div>
   </div>`;
 
-  // Deadline bar
-  if(!passed) {
-    h+=`<div class="deadline-bar">
-      <div><div class="dl-label">Predict matches for</div><div class="dl-date">${fmtDate(activeDate)}</div></div>
-      <div style="text-align:right"><div class="dl-label">Deadline</div><div class="countdown" id="cdtimer">--:--:--</div></div>
+  if (!passed && !submitted) {
+    h += `<div class="deadline-bar">
+      <div><div class="dl-label">Predicting for</div><div class="dl-val">${fmtDate(activeDate)}</div></div>
+      <div style="text-align:right"><div class="dl-label">Deadline tonight</div><div class="countdown" id="cdtimer">--:--:--</div></div>
     </div>`;
   }
 
-  if(!fixtures.length) {
-    h+=`<div class="card"><div style="text-align:center;padding:2rem;color:var(--color-text-secondary,#666);font-size:14px">No fixtures scheduled for ${fmtDate(activeDate)}.<br>Check back later! ⚽</div></div>`;
-  } else if(submitted) {
-    h+=`<div class="success-box">✅ You've submitted your predictions for <strong>${fmtDate(activeDate)}</strong>. Good luck! Results will appear after the matches.</div>`;
-    h+=`<div class="card"><p class="section-title">your predictions for ${fmtDate(activeDate)}</p>`;
+  if (!fixtures.length) {
+    h += `<div class="card"><div class="empty-state">No fixtures for ${fmtDate(activeDate)}<br>Check back later ⚽</div></div>`;
+  } else if (submitted) {
+    h += `<div class="success-box">✅ Your predictions for <strong>${fmtDate(activeDate)}</strong> are locked in. Good luck!</div>`;
+    h += `<div class="card"><p class="section-title">your locked predictions</p>`;
     fixtures.forEach(f => {
-      const pred=(S.predictions[me]||{})[f.id];
-      const result=S.results[f.id];
-      let pts=result&&pred?calcPts(pred,result):null;
-      const ptsCls=pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':pts===0?'b-wrong':'';
-      h+=`<div class="fixture-card submitted">
-        <div class="fix-header"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
-        <div class="fix-teams">
+      const pred = myPreds[f.id];
+      const result = liveResults[f.id];
+      const pts = result && pred ? calcPts(pred, result) : null;
+      const ptsCls = pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':pts===0?'b-wrong':'';
+      h += `<div class="fixture-card locked">
+        <div class="fix-meta"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
+        <div class="fix-body">
           <span class="fix-team">${f.home}</span>
           <div class="score-box">
-            ${pred?`<span class="result-display" style="font-size:15px;color:var(--color-text-secondary,#666)">${pred.h} – ${pred.a}</span>`:'<span style="font-size:13px;color:var(--color-text-secondary,#666)">—</span>'}
-            ${result?`<span style="font-size:12px;color:var(--color-text-secondary,#666);margin-left:6px">→ <strong>${result.h}–${result.a}</strong></span>`:''}
-            ${pts!==null?`<span class="badge ${ptsCls}" style="margin-left:6px">+${pts}pt${pts!==1?'s':''}</span>`:''}
+            ${pred ? `<span class="pred-locked">${pred.h} – ${pred.a}</span>` : '<span style="color:#bbb;font-size:13px">no pick</span>'}
+            ${result ? `<span style="font-size:12px;color:#888;margin-left:8px">Result: <strong>${result.h}–${result.a}</strong></span>` : ''}
+            ${pts !== null ? `<span class="badge ${ptsCls}" style="margin-left:6px">+${pts}pt${pts!==1?'s':''}</span>` : ''}
           </div>
-          <span class="fix-team away">${f.away}</span>
+          <span class="fix-team right">${f.away}</span>
         </div>
       </div>`;
     });
-    h+=`</div>`;
-  } else if(passed) {
-    h+=`<div class="warn-box">⏰ The deadline for <strong>${fmtDate(activeDate)}</strong> has passed. Predictions are now closed for today.</div>`;
+    h += `</div>`;
+  } else if (passed) {
+    h += `<div class="danger-box">⏰ The 10 PM deadline has passed. Predictions for <strong>${fmtDate(activeDate)}</strong> are closed.</div>`;
   } else {
-    // Active prediction window
-    h+=`<div class="card"><p class="section-title">predict ${fmtDate(activeDate)} — submit before 10 PM IST</p>`;
+    h += `<div class="card"><p class="section-title">predict ${fmtDate(activeDate)}</p>`;
     fixtures.forEach(f => {
-      const pred=(S.predictions[me]||{})[f.id];
-      h+=`<div class="fixture-card" id="fc${f.id}">
-        <div class="fix-header"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
-        <div class="fix-teams">
+      const pred = myPreds[f.id];
+      h += `<div class="fixture-card" id="fc${f.id}">
+        <div class="fix-meta"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
+        <div class="fix-body">
           <span class="fix-team">${f.home}</span>
           <div class="score-box">
-            <input type="number" min="0" max="20" class="sinp" id="h${f.id}" value="${pred?pred.h:''}" placeholder="0" oninput="autosave(${f.id})">
+            <input type="number" min="0" max="20" class="sinp" id="h${f.id}" value="${pred ? pred.h : ''}" placeholder="0">
             <span class="vsep">–</span>
-            <input type="number" min="0" max="20" class="sinp" id="a${f.id}" value="${pred?pred.a:''}" placeholder="0" oninput="autosave(${f.id})">
+            <input type="number" min="0" max="20" class="sinp" id="a${f.id}" value="${pred ? pred.a : ''}" placeholder="0">
           </div>
-          <span class="fix-team away">${f.away}</span>
+          <span class="fix-team right">${f.away}</span>
         </div>
       </div>`;
     });
-    h+=`<div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <span style="font-size:12px;color:var(--color-text-secondary,#666)">Fill all scores then submit. You cannot edit after submitting.</span>
-      <button class="btn-submit" id="submit-btn" onclick="doSubmit()">Submit Predictions ✓</button>
+    h += `<div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <span style="font-size:12px;color:#888">Fill all scores, then submit. You <strong>cannot edit</strong> after submitting.</span>
+      <button class="btn-submit" onclick="doSubmit()">Submit Predictions ✓</button>
     </div></div>`;
   }
 
   tc.innerHTML = h;
 
-  // Start countdown
-  if(countdownTimer) clearInterval(countdownTimer);
-  if(!passed && !submitted && document.getElementById('cdtimer')) {
+  if (countdownTimer) clearInterval(countdownTimer);
+  if (!passed && !submitted) {
     updateCountdown();
     countdownTimer = setInterval(updateCountdown, 1000);
   }
@@ -483,60 +599,67 @@ function renderPredict(tc) {
 
 function updateCountdown() {
   const el = document.getElementById('cdtimer');
-  if(!el) { clearInterval(countdownTimer); return; }
-  const diff = getDeadlineForActiveDate() - new Date();
-  if(diff <= 0) { el.textContent = 'CLOSED'; el.classList.add('urgent'); clearInterval(countdownTimer); render(); return; }
-  const h = Math.floor(diff/3600000);
-  const m = Math.floor((diff%3600000)/60000);
-  const s = Math.floor((diff%60000)/1000);
-  el.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-  if(diff < 3600000) el.classList.add('urgent');
-}
-
-function autosave(id) {
-  const hv=document.getElementById('h'+id)?.value;
-  const av=document.getElementById('a'+id)?.value;
-  if(hv===''||av==='') return;
-  const me=S.session;
-  if(!S.predictions[me]) S.predictions[me]={};
-  S.predictions[me][id]={h:+hv,a:+av};
-  save();
+  if (!el) { clearInterval(countdownTimer); return; }
+  const deadline = getDeadline(getActivePredictionDate());
+  const diff = deadline - new Date();
+  if (diff <= 0) { el.textContent = 'CLOSED'; el.classList.add('urgent'); clearInterval(countdownTimer); renderTabContent(); return; }
+  const hh = Math.floor(diff/3600000);
+  const mm = Math.floor((diff%3600000)/60000);
+  const ss = Math.floor((diff%60000)/1000);
+  el.textContent = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+  if (diff < 3600000) el.classList.add('urgent');
 }
 
 function doSubmit() {
-  const me=S.session;
-  const activeDate=getActivePredictionDate();
-  const fixtures=getTodayFixtures();
-  if(isDeadlinePassed()){alert('Deadline has passed! Predictions are closed.');return;}
-  // Check all filled
-  const missing=[];
-  fixtures.forEach(f=>{
-    const hv=document.getElementById('h'+f.id)?.value;
-    const av=document.getElementById('a'+f.id)?.value;
-    if(hv===''||av===''||hv===undefined) missing.push(f.home+' vs '+f.away);
-    else { if(!S.predictions[me])S.predictions[me]={}; S.predictions[me][f.id]={h:+hv,a:+av}; }
+  const me = session.name;
+  const activeDate = getActivePredictionDate();
+  const fixtures = FIXTURES.filter(f => f.date === activeDate);
+  if (deadlinePassed()) { alert('Deadline has passed!'); return; }
+
+  const preds = {};
+  const missing = [];
+  fixtures.forEach(f => {
+    const hv = document.getElementById('h'+f.id)?.value;
+    const av = document.getElementById('a'+f.id)?.value;
+    if (hv === '' || av === '' || hv === undefined || av === undefined) {
+      missing.push(`${f.home} vs ${f.away}`);
+    } else {
+      preds[f.id] = {h: +hv, a: +av};
+    }
   });
-  if(missing.length){
-    alert('Please fill scores for all matches before submitting:\n\n'+missing.join('\n'));
+
+  if (missing.length) {
+    alert('Please fill scores for ALL matches before submitting:\n\n' + missing.join('\n'));
     return;
   }
-  if(!confirm(`Submit your predictions for ${fmtDate(activeDate)}?\n\nYou CANNOT change them after submitting.`)) return;
-  if(!S.submitted[me]) S.submitted[me]={};
-  S.submitted[me][activeDate]=true;
-  save();
-  render();
+
+  if (!confirm(`Submit your predictions for ${fmtDate(activeDate)}?\n\nThis cannot be undone — you won't be able to change your picks after submitting.`)) return;
+
+  // Save to Firebase
+  const updates = {};
+  Object.entries(preds).forEach(([id, score]) => {
+    updates[`predictions/${me}/${id}`] = score;
+  });
+  updates[`submitted/${me}/${activeDate.replace(/-/g,'_')}`] = true;
+
+  db.ref().update(updates)
+    .then(() => { renderTabContent(); })
+    .catch(e => alert('Error saving: ' + e.message));
 }
 
-// ── LEADERBOARD ───────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// LEADERBOARD
+// ════════════════════════════════════════════════════════════════════
 function renderLeaderboard(tc) {
-  const lb=leaderboard();
-  const me=S.session;
-  const medals=['🥇','🥈','🥉'];
-  let h=`<div class="card"><p class="section-title">live standings · ${lb.length} players</p>`;
-  lb.forEach((row,i)=>{
-    const av=avC(row.name); const isMe=row.name===me;
-    h+=`<div class="lb-row ${isMe?'me':''}">
-      <div class="lb-rank">${medals[i]||'#'+(i+1)}</div>
+  const lb = leaderboard();
+  const me = session.name;
+  const medals = ['🥇','🥈','🥉'];
+  let h = `<div class="card"><p class="section-title">live standings · ${lb.length} players</p>`;
+  lb.forEach((row, i) => {
+    const av = avC(row.name);
+    const isMe = row.name === me;
+    h += `<div class="lb-row ${isMe?'me':''}">
+      <div class="lb-rank">${medals[i] || '#'+(i+1)}</div>
       <div class="avatar" style="background:${av.bg};color:${av.tx}">${initials(row.name)}</div>
       <div class="lb-info">
         <div class="lb-name">${row.name}${isMe?'<span class="you-pill">you</span>':''}</div>
@@ -545,143 +668,183 @@ function renderLeaderboard(tc) {
       <div><div class="lb-pts">${row.total}</div><div class="lb-ptslabel">pts</div></div>
     </div>`;
   });
-  h+=`</div><div class="info-box">Points update as results are entered by admin. Predictions stay hidden until the deadline passes each day.</div>`;
-  tc.innerHTML=h;
+  h += `</div><div class="info-box">🔴 Live — updates instantly as results are entered. Predictions are hidden until the 10 PM deadline passes each night.</div>`;
+  tc.innerHTML = h;
 }
 
-// ── RESULTS ───────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// RESULTS
+// ════════════════════════════════════════════════════════════════════
 function renderResults(tc) {
-  const done=FIXTURES.filter(f=>S.results[f.id]).reverse();
-  let h=`<div class="card"><p class="section-title">completed matches</p>`;
-  if(!done.length){h+=`<div style="text-align:center;padding:2rem;color:var(--color-text-secondary,#666);font-size:14px">No results yet. Check back after the first match! ⚽</div>`;h+=`</div>`;tc.innerHTML=h;return;}
-  done.forEach(f=>{
-    const r=S.results[f.id];
-    h+=`<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,0.06))">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
-        <span style="font-size:14px;font-weight:500">${f.home} <span style="color:#185fa5">${r.h}–${r.a}</span> ${f.away}</span>
-        <span style="font-size:11px;color:var(--color-text-secondary,#666)">Group ${f.group} · ${fmtDate(f.date)}</span>
+  const done = FIXTURES.filter(f => liveResults[f.id]).reverse();
+  const me = session.name;
+  let h = `<div class="card"><p class="section-title">completed matches</p>`;
+  if (!done.length) {
+    h += `<div class="empty-state">No results yet. Check back after the first match! ⚽</div></div>`;
+    tc.innerHTML = h; return;
+  }
+  done.forEach(f => {
+    const r = liveResults[f.id];
+    h += `<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(0,0,0,0.06)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap">
+        <span style="font-size:14px;font-weight:600">${f.home} <span style="color:#185fa5">${r.h}–${r.a}</span> ${f.away}</span>
+        <span style="font-size:11px;color:#888">Group ${f.group} · ${fmtDate(f.date)}</span>
       </div>
-      <div style="display:flex;flex-wrap:wrap;gap:4px">`;
-    S.members.forEach(m=>{
-      const pred=(S.predictions[m.name]||{})[f.id];
-      if(!pred) return;
-      const pts=calcPts(pred,r);
-      const cls=pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':'b-wrong';
-      const isMe=m.name===S.session;
-      h+=`<span style="font-size:12px;display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:6px;background:var(--color-background-secondary,#eee);${isMe?'border:1px solid #185fa5;':''}">${m.name}: <strong>${pred.h}–${pred.a}</strong> <span class="badge ${cls}" style="font-size:10px;padding:1px 5px">+${pts}p</span></span>`;
+      <div style="display:flex;flex-wrap:wrap;gap:5px">`;
+    liveMembers.forEach(m => {
+      const pred = (livePredictions[m.name]||{})[f.id];
+      if (!pred) return;
+      const pts = calcPts(pred, r);
+      const cls = pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':'b-wrong';
+      const isMe = m.name === me;
+      h += `<span style="font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;background:#f5f5f7;${isMe?'border:1.5px solid #185fa5;':''}">${m.name}: <strong>${pred.h}–${pred.a}</strong> <span class="badge ${cls}" style="font-size:10px;padding:1px 5px">+${pts}p</span></span>`;
     });
-    h+=`</div></div>`;
+    h += `</div></div>`;
   });
-  h+=`</div>`;
-  tc.innerHTML=h;
+  h += `</div>`;
+  tc.innerHTML = h;
 }
 
-// ── RULES ─────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// RULES
+// ════════════════════════════════════════════════════════════════════
 function renderRules(tc) {
-  tc.innerHTML=`
-  <div class="card"><p class="section-title">how it works</p>
-    <div class="info-box" style="margin-bottom:14px">Every evening before <strong>10 PM IST</strong>, predict the next day's match scores. Submit once — no editing allowed after submission. Most points by July 19 wins!</div>
+  tc.innerHTML = `
+  <div class="card"><p class="section-title">scoring system</p>
     ${[
       ['+5','Exact scoreline','Predicted 2–1 and it ended exactly 2–1'],
       ['+3','Correct result','Right outcome (win/draw), any score'],
       ['+1','Correct goal diff.','Same margin, different score (e.g. 2–0 vs 3–1)'],
       ['0','Wrong result','Predicted wrong outcome'],
-    ].map(([p,t,s])=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,0.06))">
-      <span style="font-size:13px;font-weight:500;padding:3px 10px;border-radius:100px;background:#e6f1fb;color:#0c447c;min-width:40px;text-align:center;flex-shrink:0">${p}</span>
-      <div><div style="font-size:14px">${t}</div><div style="font-size:12px;color:var(--color-text-secondary,#666);margin-top:2px">${s}</div></div>
+    ].map(([p,t,s]) => `<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+      <span style="font-size:13px;font-weight:600;padding:3px 10px;border-radius:100px;background:#e6f1fb;color:#0c447c;min-width:40px;text-align:center;flex-shrink:0">${p}</span>
+      <div><div style="font-size:14px;font-weight:500">${t}</div><div style="font-size:12px;color:#888;margin-top:2px">${s}</div></div>
     </div>`).join('')}
   </div>
   <div class="card"><p class="section-title">contest rules</p>
     ${[
-      ['⏰','10 PM IST deadline daily','Predictions open each evening for next day\'s matches. No entries after 10 PM.'],
-      ['🔒','No editing after submit','Once you hit Submit, your predictions are final.'],
-      ['👁','Predictions are private','Others can\'t see your picks until the deadline passes.'],
-      ['🏆','Winner takes all','Most points after July 19 final wins. Tiebreaker: exact scores → correct results.'],
-      ['📲','One account per person','Your PIN is yours alone. Don\'t share it.'],
-    ].map(([ic,t,s])=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:0.5px solid var(--color-border-tertiary,rgba(0,0,0,0.06))">
-      <span style="font-size:15px;padding:3px 8px;border-radius:8px;background:var(--color-background-secondary,#eee);flex-shrink:0">${ic}</span>
-      <div><div style="font-size:14px;font-weight:500">${t}</div><div style="font-size:12px;color:var(--color-text-secondary,#666);margin-top:2px">${s}</div></div>
+      ['⏰','10 PM IST deadline nightly','Each evening, predict the next day\'s matches. Predictions close strictly at 10 PM IST.'],
+      ['🔒','No editing after submit','Once you tap Submit, your predictions are final. No exceptions.'],
+      ['👁','Picks hidden until deadline','Others cannot see your predictions until the 10 PM deadline passes.'],
+      ['🏆','Most points wins','After the July 19 final, highest total wins. Tiebreaker: exact scores → correct results.'],
+      ['📲','One account, one PIN','Your PIN is yours alone. Don\'t share it.'],
+    ].map(([ic,t,s]) => `<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+      <span style="font-size:16px;padding:4px 8px;border-radius:8px;background:#f5f5f7;flex-shrink:0">${ic}</span>
+      <div><div style="font-size:14px;font-weight:600">${t}</div><div style="font-size:12px;color:#888;margin-top:2px">${s}</div></div>
     </div>`).join('')}
   </div>`;
 }
 
-// ── ADMIN ─────────────────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// ADMIN TAB
+// ════════════════════════════════════════════════════════════════════
 function renderAdmin(tc) {
-  // Show upcoming 3 days and past
   const now = new Date();
-  const istNow = new Date(now.getTime() + 5.5*60*60*1000);
-  const y=istNow.getUTCFullYear(), m=String(istNow.getUTCMonth()+1).padStart(2,'0'), d=String(istNow.getUTCDate()).padStart(2,'0');
-  const todayIST=`${y}-${m}-${d}`;
-  const adminFixtures = [...FIXTURES].filter(f => f.date <= todayIST || f.date <= add3Days(todayIST)).slice(0, 30);
+  const ist = new Date(now.getTime() + 5.5*60*60*1000);
+  const pad = n => String(n).padStart(2,'0');
+  const todayIST = `${ist.getUTCFullYear()}-${pad(ist.getUTCMonth()+1)}-${pad(ist.getUTCDate())}`;
+  const nextDay = new Date(ist.getTime() + 24*60*60*1000);
+  const nextDayIST = `${nextDay.getUTCFullYear()}-${pad(nextDay.getUTCMonth()+1)}-${pad(nextDay.getUTCDate())}`;
 
-  // group by date
-  const byDate={};
-  adminFixtures.forEach(f=>{ if(!byDate[f.date])byDate[f.date]=[]; byDate[f.date].push(f); });
+  // Show today + tomorrow + past 3 days
+  const adminFixtures = FIXTURES.filter(f => f.date <= nextDayIST).slice(-30);
+  const byDate = {};
+  adminFixtures.forEach(f => { if(!byDate[f.date]) byDate[f.date]=[]; byDate[f.date].push(f); });
 
-  let h=`<div class="warn-box">🔐 Admin only · PIN 9999 · Do not share this panel.</div>
+  const activeDate = getActivePredictionDate();
+  const submissionCount = liveMembers.filter(m => hasSubmitted(m.name, activeDate)).length;
+
+  let h = `
+  <div class="warn-box">🔐 Admin panel · PIN 9999 · Do not share this screen.</div>
+  <div class="stats-grid" style="margin-bottom:1rem">
+    <div class="stat-card"><div class="stat-num">${liveMembers.length}</div><div class="stat-label">players</div></div>
+    <div class="stat-card"><div class="stat-num">${submissionCount}</div><div class="stat-label">submitted today</div></div>
+    <div class="stat-card"><div class="stat-num">${liveMembers.length - submissionCount}</div><div class="stat-label">pending</div></div>
+    <div class="stat-card"><div class="stat-num">${Object.keys(liveResults).length}</div><div class="stat-label">results in</div></div>
+  </div>
 
   <div class="card"><p class="section-title">enter match results</p>
-  <div class="info-box" style="margin-bottom:12px">After each match, enter the final score. Points calculate instantly for all players.</div>`;
+  <div class="info-box" style="margin-bottom:12px">Enter the final score after each match ends. Points calculate instantly and the leaderboard updates live for all 20 players.</div>`;
 
-  Object.keys(byDate).sort().reverse().forEach(date=>{
-    h+=`<div style="font-size:11px;font-weight:500;color:var(--color-text-secondary,#666);padding:8px 0 4px;border-top:0.5px solid var(--color-border-tertiary,rgba(0,0,0,0.07));margin-top:4px">${fmtDate(date)}</div>`;
-    byDate[date].forEach(f=>{
-      const r=S.results[f.id];
-      h+=`<div class="admin-fix-row">
-        <div class="ateams">${f.home} vs ${f.away} <span style="font-size:11px;color:var(--color-text-secondary,#666)">Grp ${f.group}</span></div>`;
-      if(r){
-        h+=`<span class="entered-tag">${r.h}–${r.a} ✓</span>
-            <button class="btn-sm" style="font-size:11px;padding:2px 8px" onclick="clearRes(${f.id})">Edit</button>`;
+  Object.keys(byDate).sort().reverse().forEach(date => {
+    h += `<div style="font-size:11px;font-weight:600;color:#888;padding:8px 0 5px;border-top:1px solid rgba(0,0,0,0.06);margin-top:4px;text-transform:uppercase;letter-spacing:0.05em">${fmtDate(date)}</div>`;
+    byDate[date].forEach(f => {
+      const r = liveResults[f.id];
+      h += `<div class="admin-fix-row">
+        <div class="ateams">${f.home} vs ${f.away} <span style="font-size:11px;color:#aaa">Grp ${f.group} · ${f.ist} IST</span></div>`;
+      if (r) {
+        h += `<span class="entered-tag">${r.h}–${r.a} ✓</span>
+              <button class="btn-sm" style="font-size:11px;padding:2px 8px" onclick="clearRes(${f.id})">Edit</button>`;
       } else {
-        h+=`<input type="number" min="0" max="20" class="rinp" id="rh${f.id}" placeholder="H">
-            <span style="font-size:12px;color:var(--color-text-secondary,#666)">–</span>
-            <input type="number" min="0" max="20" class="rinp" id="ra${f.id}" placeholder="A">
-            <button class="btn-save" onclick="saveRes(${f.id})">Save</button>`;
+        h += `<input type="number" min="0" max="20" class="rinp" id="rh${f.id}" placeholder="H">
+              <span style="font-size:13px;color:#bbb">–</span>
+              <input type="number" min="0" max="20" class="rinp" id="ra${f.id}" placeholder="A">
+              <button class="btn-save" onclick="saveRes(${f.id})">Save</button>`;
       }
-      h+=`</div>`;
+      h += `</div>`;
     });
   });
-  h+=`</div>
+  h += `</div>
 
-  <div class="card"><p class="section-title">member PINs</p>
-  <div class="warn-box" style="margin-bottom:10px">Send each PIN privately via WhatsApp DM — never in a group.</div>
+  <div class="card"><p class="section-title">who has submitted today · ${fmtDate(activeDate)}</p>`;
+  liveMembers.forEach(m => {
+    const sub = hasSubmitted(m.name, activeDate);
+    const av = avC(m.name);
+    h += `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
+      <div class="avatar" style="background:${av.bg};color:${av.tx};width:28px;height:28px;font-size:11px">${initials(m.name)}</div>
+      <span style="flex:1;font-size:13px;font-weight:500">${m.name}</span>
+      <span class="badge ${sub?'b-submitted':'b-closed'}">${sub ? '✓ submitted' : '⏳ pending'}</span>
+    </div>`;
+  });
+  h += `</div>
+
+  <div class="card"><p class="section-title">manage members & PINs</p>
+  <div class="warn-box" style="margin-bottom:10px">Send each PIN via WhatsApp DM individually. Use the "Copy msg" button.</div>
   <table class="member-table">
-    <tr><th>#</th><th>Name</th><th>PIN</th><th>Submitted today</th><th></th></tr>
-    ${S.members.map((m,i)=>{
-      const ad=getActivePredictionDate();
-      const sub=hasSubmitted(m.name,ad)?'<span class="badge b-submitted">✓ yes</span>':'<span style="font-size:12px;color:var(--color-text-secondary,#666)">–</span>';
-      return `<tr>
-        <td style="color:var(--color-text-secondary,#666);font-size:12px">${i+1}</td>
-        <td><input class="edit-inp" value="${m.name}" style="width:100px" onchange="upd(${i},'name',this.value)"></td>
-        <td><input class="edit-inp" maxlength="4" value="${m.pin}" style="width:56px;font-family:var(--font-mono,monospace);color:#185fa5;font-weight:500;text-align:center" onchange="upd(${i},'pin',this.value)"></td>
-        <td>${sub}</td>
-        <td><button class="copy-btn" onclick="copyMsg('${m.name}','${m.pin}')">Copy msg</button></td>
-      </tr>`;
-    }).join('')}
+    <tr><th>#</th><th>Name</th><th>PIN</th><th></th></tr>
+    ${liveMembers.map((m,i) => `<tr>
+      <td style="color:#aaa;font-size:12px">${i+1}</td>
+      <td><input class="edit-inp" value="${m.name}" style="width:110px" onchange="updateMember(${i},'name',this.value)"></td>
+      <td><input class="edit-inp" maxlength="4" value="${m.pin}" style="width:60px;font-family:monospace;font-weight:700;color:#185fa5;text-align:center" onchange="updateMember(${i},'pin',this.value)"></td>
+      <td><button class="copy-btn" onclick="copyMsg('${m.name}','${m.pin}')">Copy msg</button></td>
+    </tr>`).join('')}
   </table>
   </div>`;
 
-  tc.innerHTML=h;
+  tc.innerHTML = h;
 }
 
-function add3Days(dateStr) {
-  const d=new Date(dateStr+'T12:00:00'); d.setDate(d.getDate()+3);
-  return d.toISOString().split('T')[0];
-}
-function saveRes(id){
-  const h=document.getElementById('rh'+id)?.value;
-  const a=document.getElementById('ra'+id)?.value;
-  if(h===''||a===''||h===undefined) return;
-  S.results[id]={h:+h,a:+a}; save(); renderAdmin(document.getElementById('tc'));
-}
-function clearRes(id){ delete S.results[id]; save(); renderAdmin(document.getElementById('tc')); }
-function upd(i,field,val){ S.members[i][field]=val.trim(); save(); }
-function copyMsg(name,pin){
-  const msg=`Hi ${name}! 🏆\n\nYou're invited to Lead and Leap World Cup 2026 Prediction Contest!\n\n🔗 Open the link: https://ll-wc-prediction.vercel.app\n👤 Your name: ${name}\n🔑 Your PIN: ${pin}\n\nPredict tomorrow's match scores every day before 10 PM IST.\nMost points by July 19 wins!\n\nGood luck! ⚽`;
-  navigator.clipboard?.writeText(msg).then(()=>alert('Message copied! Paste in WhatsApp to '+name)).catch(()=>alert('PIN for '+name+': '+pin));
+function saveRes(id) {
+  const h = document.getElementById('rh'+id)?.value;
+  const a = document.getElementById('ra'+id)?.value;
+  if (h==='' || a==='' || h===undefined) return;
+  db.ref(`results/${id}`).set({h:+h, a:+a})
+    .catch(e => alert('Error: ' + e.message));
 }
 
-render();
+function clearRes(id) {
+  db.ref(`results/${id}`).remove()
+    .catch(e => alert('Error: ' + e.message));
+}
+
+function updateMember(i, field, val) {
+  const updated = [...liveMembers];
+  updated[i] = {...updated[i], [field]: val.trim()};
+  db.ref('members').set(updated)
+    .catch(e => alert('Error: ' + e.message));
+}
+
+function copyMsg(name, pin) {
+  const msg = `Hi ${name}! 🏆\n\nYou're invited to our WC 2026 Office Prediction Contest!\n\n🔗 App link: [PASTE YOUR VERCEL URL HERE]\n👤 Your name: ${name}\n🔑 Your PIN: ${pin}\n\nEvery evening predict the next day's match scores before 10 PM IST.\nMost points by July 19 wins the prize!\n\nGood luck! ⚽🇮🇳`;
+  navigator.clipboard?.writeText(msg)
+    .then(() => alert('✅ Message copied! Paste in WhatsApp DM to ' + name))
+    .catch(() => alert('PIN for ' + name + ': ' + pin));
+}
+
+// ════════════════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════════════════
+initFirebase();
 </script>
 </body>
 </html>
