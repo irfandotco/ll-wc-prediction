@@ -106,26 +106,6 @@ select.inp { cursor: pointer; }
 .spinner { width: 32px; height: 32px; border: 3px solid #e0e0e0; border-top-color: #185fa5; border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .empty-state { text-align: center; padding: 2.5rem 1rem; color: #888; font-size: 14px; }
-
-.knockout-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
-.knockout-note { font-size:13px; color:#666; max-width:520px; line-height:1.6; }
-.bracket-wrap { overflow-x:auto; padding-bottom:6px; }
-.bracket { display:grid; grid-template-columns: repeat(6, minmax(220px, 1fr)); gap:14px; min-width:1380px; align-items:start; }
-.bracket-col { background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:14px; padding:12px; }
-.bracket-head { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#888; margin-bottom:10px; }
-.bracket-list { display:flex; flex-direction:column; gap:10px; }
-.bracket-match { border:1px solid rgba(0,0,0,0.06); border-radius:12px; background:#fafafa; padding:10px; }
-.bracket-meta { display:flex; justify-content:space-between; gap:8px; font-size:11px; color:#888; margin-bottom:8px; }
-.bracket-team { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 0; font-size:13px; font-weight:600; border-bottom:1px solid rgba(0,0,0,0.05); }
-.bracket-team:last-child { border-bottom:none; }
-.bracket-score { min-width:20px; text-align:center; color:#185fa5; font-weight:700; }
-.bracket-team.placeholder { color:#999; font-weight:500; }
-.bracket-team.winner { color:#1a5c2a; }
-.bracket-path { font-size:11px; color:#888; margin-top:8px; }
-@media (max-width: 900px) {
-  .bracket { grid-template-columns: repeat(6, minmax(190px, 1fr)); min-width:1180px; }
-}
-
 </style>
 </head>
 <body>
@@ -336,40 +316,15 @@ function tryRender() {
 }
 
 // ── SCORING ───────────────────────────────────────────────────────
-function calcPts(p, r, fixture=null) {
+function calcPts(p, r) {
   if (!p || !r) return null;
   const ph=+p.h, pa=+p.a, rh=+r.h, ra=+r.a;
   if (isNaN(ph)||isNaN(pa)) return null;
-  let pts = 0;
-  if (ph===rh && pa===ra) pts = 5;
-  else {
-    const po=ph>pa?'H':ph<pa?'A':'D', ro=rh>ra?'H':rh<ra?'A':'D';
-    if (po===ro) pts = 3;
-    else if ((ph-pa)===(rh-ra)) pts = 1;
-  }
-  return pts * stageMultiplier(fixture);
-}
-
-
-function getFixtureStage(fixture) {
-  if (!fixture) return 'group';
-  if (fixture.stage) return fixture.stage;
-  const label = String(fixture.group || fixture.round || '').toLowerCase();
-  if (label.includes('semi')) return 'semi';
-  if (label.includes('final')) return fixture.id === 'third' ? 'third' : 'final';
-  if (label.includes('quarter') || label.includes('round of 16') || label.includes('round of 32') || label.includes('knockout') || label.includes('playoff')) return 'knockout';
-  return 'group';
-}
-
-function stageMultiplier(fixture) {
-  const stage = getFixtureStage(fixture);
-  if (stage === 'semi' || stage === 'final' || stage === 'third') return 2;
-  if (stage === 'knockout' || stage === 'playoff') return 1.5;
-  return 1;
-}
-
-function formatPts(pts) {
-  return Number.isInteger(pts) ? String(pts) : pts.toFixed(1);
+  if (ph===rh && pa===ra) return 5;
+  const po=ph>pa?'H':ph<pa?'A':'D', ro=rh>ra?'H':rh<ra?'A':'D';
+  if (po===ro) return 3;
+  if ((ph-pa)===(rh-ra)) return 1;
+  return 0;
 }
 
 function memberStats(name) {
@@ -379,13 +334,8 @@ function memberStats(name) {
     const p = (livePredictions[name]||{})[f.id];
     if (r && p) {
       played++;
-      const pts = calcPts(p, r, f);
-      const basePts = calcPts(p, r);
-      if (pts !== null) {
-        total += pts;
-        if (basePts >= 3) correct++;
-        if (basePts === 5) exact++;
-      }
+      const pts = calcPts(p, r);
+      if (pts !== null) { total+=pts; if(pts>=3)correct++; if(pts===5)exact++; }
     }
   });
   return {total, correct, exact, played};
@@ -430,8 +380,8 @@ function setTab(t) {
 function renderApp(root) {
   const isAdmin = session.admin;
   const tabs = isAdmin
-    ? [['admin','⚙️ Admin'],['knockout','🏟️ Knockout'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']]
-    : [['predict','⚽ Predict'],['knockout','🏟️ Knockout'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']];
+    ? [['admin','⚙️ Admin'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']]
+    : [['predict','⚽ Predict'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']];
 
   // Always rebuild the shell so tabs stay in sync with session/tab state
   root.innerHTML = `
@@ -449,7 +399,6 @@ function renderTabContent() {
   const tc = document.getElementById('tc');
   if (!tc) return;
   if      (tab==='predict'     && !session.admin) renderPredict(tc);
-  else if (tab==='knockout')                      renderKnockout(tc);
   else if (tab==='leaderboard')                   renderLeaderboard(tc);
   else if (tab==='results')                       renderResults(tc);
   else if (tab==='rules')                         renderRules(tc);
@@ -560,17 +509,16 @@ function renderPredict(tc) {
     fixtures.forEach(f => {
       const pred = myPreds[f.id];
       const result = liveResults[f.id];
-      const pts = result && pred ? calcPts(pred, result, f) : null;
-      const basePts = result && pred ? calcPts(pred, result) : null;
-      const ptsCls = basePts===5?'b-exact':basePts===3?'b-correct':basePts===1?'b-partial':basePts===0?'b-wrong':'';
+      const pts = result && pred ? calcPts(pred, result) : null;
+      const ptsCls = pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':pts===0?'b-wrong':'';
       h += `<div class="fixture-card locked">
-        <div class="fix-meta"><span class="fix-group">${f.group ? (f.group.startsWith('Group') ? f.group : 'Group ' + f.group) : stageLabel(f.stage)}</span><span class="fix-time">${f.ist ? f.ist + ' IST' : ''}</span></div>
+        <div class="fix-meta"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
         <div class="fix-body">
           <span class="fix-team">${f.home}</span>
           <div class="score-box">
             ${pred ? `<span class="pred-locked">${pred.h} – ${pred.a}</span>` : '<span style="color:#bbb;font-size:13px">no pick</span>'}
             ${result ? `<span style="font-size:12px;color:#888;margin-left:8px">Result: <strong>${result.h}–${result.a}</strong></span>` : ''}
-            ${pts !== null ? `<span class="badge ${ptsCls}" style="margin-left:6px">+${formatPts(pts)} pts</span>` : ''}
+            ${pts !== null ? `<span class="badge ${ptsCls}" style="margin-left:6px">+${pts}pt${pts!==1?'s':''}</span>` : ''}
           </div>
           <span class="fix-team right">${f.away}</span>
         </div>
@@ -590,7 +538,7 @@ function renderPredict(tc) {
     fixtures.forEach(f => {
       const pred = myPreds[f.id];
       h += `<div class="fixture-card">
-        <div class="fix-meta"><span class="fix-group">${f.group ? (f.group.startsWith('Group') ? f.group : 'Group ' + f.group) : stageLabel(f.stage)}</span><span class="fix-time">${f.ist ? f.ist + ' IST' : ''}</span></div>
+        <div class="fix-meta"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
         <div class="fix-body">
           <span class="fix-team">${f.home}</span>
           <div class="score-box">
@@ -685,7 +633,7 @@ function renderLeaderboard(tc) {
 
 // ── RESULTS ───────────────────────────────────────────────────────
 function renderResults(tc) {
-  const done = allFixtures().filter(f => liveResults[f.id]).reverse();
+  const done = allFixtures().filter(f => liveResults[f.id] && typeof liveResults[f.id] === 'object' && 'h' in liveResults[f.id]).reverse();
   const me = session.name;
   let h = `<div class="card"><p class="section-title">completed matches</p>`;
   if (!done.length) {
@@ -697,17 +645,16 @@ function renderResults(tc) {
     h += `<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(0,0,0,0.06)">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap">
         <span style="font-size:14px;font-weight:600">${f.home} <span style="color:#185fa5">${r.h}–${r.a}</span> ${f.away}</span>
-        <span style="font-size:11px;color:#888">${(f.stage || ('Group ' + f.group))} · ${fmtDate(f.date)}</span>
+        <span style="font-size:11px;color:#888">Group ${f.group} · ${fmtDate(f.date)}</span>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px">`;
     liveMembers.forEach(m => {
       const pred = (livePredictions[m.name]||{})[f.id];
       if (!pred) return;
-      const pts = calcPts(pred, r, f);
-      const basePts = calcPts(pred, r);
-      const cls = basePts===5?'b-exact':basePts===3?'b-correct':basePts===1?'b-partial':'b-wrong';
+      const pts = calcPts(pred, r);
+      const cls = pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':'b-wrong';
       const isMe = m.name === me;
-      h += `<span style="font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;background:#f5f5f7;${isMe?'border:1.5px solid #185fa5;':''}">${m.name}: <strong>${pred.h}–${pred.a}</strong> <span class="badge ${cls}" style="font-size:10px;padding:1px 5px">+${formatPts(pts)}p</span></span>`;
+      h += `<span style="font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;background:#f5f5f7;${isMe?'border:1.5px solid #185fa5;':''}">${m.name}: <strong>${pred.h}–${pred.a}</strong> <span class="badge ${cls}" style="font-size:10px;padding:1px 5px">+${pts}p</span></span>`;
     });
     h += `</div></div>`;
   });
@@ -717,197 +664,91 @@ function renderResults(tc) {
 
 // ── RULES ─────────────────────────────────────────────────────────
 
-
-const THIRD_PLACE_PATTERNS = {
-  1:['A','B','C','D','F'],
-  2:['C','D','F','G','H'],
-  3:['B','E','F','I','J'],
-  4:['A','E','H','I','J'],
-  5:['C','E','F','H','I'],
-  6:['E','H','I','J','K'],
-  7:['E','F','G','I','J'],
-  8:['D','E','I','J','L']
-};
-
-const KNOCKOUT_TEMPLATE = [
-  { key:'r32', title:'Round of 32', matches:[
-    { id:'r32-1', label:'Match 73', date:'2026-06-28', stage:'knockout', homeSlot:{type:'runnerup', group:'A'}, awaySlot:{type:'runnerup', group:'B'}, next:'r16-2' },
-    { id:'r32-2', label:'Match 74', date:'2026-06-29', stage:'knockout', homeSlot:{type:'winner', group:'C'}, awaySlot:{type:'runnerup', group:'F'}, next:'r16-1' },
-    { id:'r32-3', label:'Match 75', date:'2026-06-29', stage:'knockout', homeSlot:{type:'winner', group:'E'}, awaySlot:{type:'third', pattern:1}, next:'r16-2' },
-    { id:'r32-4', label:'Match 76', date:'2026-06-30', stage:'knockout', homeSlot:{type:'runnerup', group:'E'}, awaySlot:{type:'runnerup', group:'I'}, next:'r16-3' },
-    { id:'r32-5', label:'Match 77', date:'2026-06-30', stage:'knockout', homeSlot:{type:'winner', group:'I'}, awaySlot:{type:'third', pattern:2}, next:'r16-1' },
-    { id:'r32-6', label:'Match 78', date:'2026-06-30', stage:'knockout', homeSlot:{type:'winner', group:'F'}, awaySlot:{type:'runnerup', group:'C'}, next:'r16-3' },
-    { id:'r32-7', label:'Match 79', date:'2026-07-01', stage:'knockout', homeSlot:{type:'winner', group:'A'}, awaySlot:{type:'third', pattern:5}, next:'r16-4' },
-    { id:'r32-8', label:'Match 80', date:'2026-07-01', stage:'knockout', homeSlot:{type:'winner', group:'L'}, awaySlot:{type:'third', pattern:6}, next:'r16-6' },
-    { id:'r32-9', label:'Match 81', date:'2026-07-02', stage:'knockout', homeSlot:{type:'winner', group:'D'}, awaySlot:{type:'third', pattern:3}, next:'r16-4' },
-    { id:'r32-10', label:'Match 82', date:'2026-07-02', stage:'knockout', homeSlot:{type:'winner', group:'G'}, awaySlot:{type:'third', pattern:4}, next:'r16-5' },
-    { id:'r32-11', label:'Match 83', date:'2026-07-02', stage:'knockout', homeSlot:{type:'winner', group:'H'}, awaySlot:{type:'runnerup', group:'J'}, next:'r16-5' },
-    { id:'r32-12', label:'Match 84', date:'2026-07-02', stage:'knockout', homeSlot:{type:'runnerup', group:'K'}, awaySlot:{type:'runnerup', group:'L'}, next:'r16-7' },
-    { id:'r32-13', label:'Match 85', date:'2026-07-03', stage:'knockout', homeSlot:{type:'winner', group:'B'}, awaySlot:{type:'third', pattern:7}, next:'r16-8' },
-    { id:'r32-14', label:'Match 86', date:'2026-07-03', stage:'knockout', homeSlot:{type:'runnerup', group:'D'}, awaySlot:{type:'runnerup', group:'G'}, next:'r16-7' },
-    { id:'r32-15', label:'Match 87', date:'2026-07-03', stage:'knockout', homeSlot:{type:'winner', group:'J'}, awaySlot:{type:'runnerup', group:'H'}, next:'r16-8' },
-    { id:'r32-16', label:'Match 88', date:'2026-07-04', stage:'knockout', homeSlot:{type:'winner', group:'K'}, awaySlot:{type:'third', pattern:8}, next:'r16-6' }
-  ]},
-  { key:'r16', title:'Round of 16', matches:[
-    { id:'r16-1', label:'Match 89', date:'2026-07-04', stage:'knockout', homeSlot:{type:'winnerMatch', match:'r32-2'}, awaySlot:{type:'winnerMatch', match:'r32-5'}, next:'qf-1' },
-    { id:'r16-2', label:'Match 90', date:'2026-07-04', stage:'knockout', homeSlot:{type:'winnerMatch', match:'r32-1'}, awaySlot:{type:'winnerMatch', match:'r32-3'}, next:'qf-1' },
-    { id:'r16-3', label:'Match 91', date:'2026-07-05', stage:'knockout', homeSlot:{type:'winnerMatch', match:'r32-4'}, awaySlot:{type:'winnerMatch', match:'r32-6'}, next:'qf-2' },
-    { id:'r16-4', label:'Match 92', date:'2026-07-06', stage:'knockout', homeSlot:{type:'winnerMatch', match:'r32-7'}, awaySlot:{type:'winnerMatch', match:'r32-9'}, next:'qf-2' },
-    { id:'r16-5', label:'Match 93', date:'2026-07-06', stage:'knockout', homeSlot:{type:'winnerMatch', match:'r32-10'}, awaySlot:{type:'winnerMatch', match:'r32-11'}, next:'qf-3' },
-    { id:'r16-6', label:'Match 94', date:'2026-07-07', stage:'knockout', homeSlot:{type:'winnerMatch', match:'r32-8'}, awaySlot:{type:'winnerMatch', match:'r32-16'}, next:'qf-4' },
-    { id:'r16-7', label:'Match 95', date:'2026-07-07', stage:'knockout', homeSlot:{type:'winnerMatch', match:'r32-12'}, awaySlot:{type:'winnerMatch', match:'r32-14'}, next:'qf-3' },
-    { id:'r16-8', label:'Match 96', date:'2026-07-07', stage:'knockout', homeSlot:{type:'winnerMatch', match:'r32-13'}, awaySlot:{type:'winnerMatch', match:'r32-15'}, next:'qf-4' }
-  ]},
-  { key:'qf', title:'Quarter-finals', matches:[
-    { id:'qf-1', label:'Match 97', date:'2026-07-09', stage:'knockout', homeSlot:{type:'winnerMatch', match:'r16-1'}, awaySlot:{type:'winnerMatch', match:'r16-2'}, next:'sf-1' },
-    { id:'qf-2', label:'Match 98', date:'2026-07-11', stage:'knockout', homeSlot:{type:'winnerMatch', match:'r16-3'}, awaySlot:{type:'winnerMatch', match:'r16-4'}, next:'sf-1' },
-    { id:'qf-3', label:'Match 99', date:'2026-07-10', stage:'knockout', homeSlot:{type:'winnerMatch', match:'r16-5'}, awaySlot:{type:'winnerMatch', match:'r16-7'}, next:'sf-2' },
-    { id:'qf-4', label:'Match 100', date:'2026-07-11', stage:'knockout', homeSlot:{type:'winnerMatch', match:'r16-6'}, awaySlot:{type:'winnerMatch', match:'r16-8'}, next:'sf-2' }
-  ]},
-  { key:'sf', title:'Semi-finals', matches:[
-    { id:'sf-1', label:'Match 101', date:'2026-07-14', stage:'semi', homeSlot:{type:'winnerMatch', match:'qf-1'}, awaySlot:{type:'winnerMatch', match:'qf-2'}, next:'final', loserNext:'third' },
-    { id:'sf-2', label:'Match 102', date:'2026-07-15', stage:'semi', homeSlot:{type:'winnerMatch', match:'qf-3'}, awaySlot:{type:'winnerMatch', match:'qf-4'}, next:'final', loserNext:'third' }
-  ]},
-  { key:'medals', title:'Medal matches', matches:[
-    { id:'third', label:'Third-place match', date:'2026-07-18', stage:'third', homeSlot:{type:'loserMatch', match:'sf-1'}, awaySlot:{type:'loserMatch', match:'sf-2'} },
-    { id:'final', label:'Final', date:'2026-07-19', stage:'final', homeSlot:{type:'winnerMatch', match:'sf-1'}, awaySlot:{type:'winnerMatch', match:'sf-2'} }
-  ]}
+const KNOCKOUT_FIXTURES = [
+  {id:'r32-1', stage:'r32', group:'R32', label:'Round of 32', date:'2026-06-28', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'r32-2', stage:'r32', group:'R32', label:'Round of 32', date:'2026-06-29', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'r32-3', stage:'r32', group:'R32', label:'Round of 32', date:'2026-06-29', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'r32-4', stage:'r32', group:'R32', label:'Round of 32', date:'2026-06-30', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'r32-5', stage:'r32', group:'R32', label:'Round of 32', date:'2026-06-30', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'r32-6', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-01', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'r32-7', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-01', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'r32-8', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-02', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'r32-9', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-02', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'r32-10', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-03', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'r32-11', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-03', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'r32-12', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-04', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'r32-13', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-04', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'r32-14', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-05', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'r32-15', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-05', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'r32-16', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-06', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'r16-1', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-04', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'r16-2', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-05', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'r16-3', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-05', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'r16-4', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-06', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'r16-5', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-06', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'r16-6', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-07', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'r16-7', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-07', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'r16-8', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-08', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'qf-1', stage:'qf', group:'QF', label:'Quarter-final', date:'2026-07-09', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'qf-2', stage:'qf', group:'QF', label:'Quarter-final', date:'2026-07-10', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'qf-3', stage:'qf', group:'QF', label:'Quarter-final', date:'2026-07-10', ist:'22:30', home:'TBD', away:'TBD'},
+  {id:'qf-4', stage:'qf', group:'QF', label:'Quarter-final', date:'2026-07-11', ist:'01:30', home:'TBD', away:'TBD'},
+  {id:'sf-1', stage:'semi', group:'SF', label:'Semi-final', date:'2026-07-15', ist:'00:30', home:'TBD', away:'TBD'},
+  {id:'sf-2', stage:'semi', group:'SF', label:'Semi-final', date:'2026-07-16', ist:'00:30', home:'TBD', away:'TBD'},
+  {id:'third', stage:'third', group:'3RD', label:'Third-place match', date:'2026-07-18', ist:'20:30', home:'TBD', away:'TBD'},
+  {id:'final', stage:'final', group:'FIN', label:'Final', date:'2026-07-19', ist:'00:30', home:'TBD', away:'TBD'}
 ];
 
 function allFixtures() {
-  return [...FIXTURES, ...getKnockoutFixtures()];
+  return [...FIXTURES, ...getManualKnockoutFixtures()];
 }
 
-function getKnockoutFixtures() {
-  return KNOCKOUT_TEMPLATE.flatMap(col => col.matches.map(m => ({
-    id: m.id,
-    date: m.date,
-    ist: '',
-    stage: m.stage,
-    group: stageLabel(m.stage),
-    home: resolveBracketTeam(m.homeSlot),
-    away: resolveBracketTeam(m.awaySlot),
-    label: m.label,
-    next: m.next,
-    loserNext: m.loserNext
-  })));
+function getManualKnockoutAssignments() {
+  return liveResults.__knockoutTeams || {};
 }
 
-function stageLabel(stage) {
-  if (stage === 'semi') return 'Semi-final';
-  if (stage === 'final') return 'Final';
-  if (stage === 'third') return 'Third-place';
-  if (stage === 'knockout') return 'Knockout';
-  return 'Group';
+function getManualKnockoutFixtures() {
+  const assign = getManualKnockoutAssignments();
+  return KNOCKOUT_FIXTURES.map(f => ({...f, home: assign[f.id]?.home || f.home, away: assign[f.id]?.away || f.away}));
 }
 
-function getGroupTable() {
-  const groups = {};
-  FIXTURES.forEach(f => {
-    if (!f.group || !liveResults[f.id]) return;
-    const r = liveResults[f.id];
-    if (!groups[f.group]) groups[f.group] = {};
-    [f.home, f.away].forEach(team => {
-      if (!groups[f.group][team]) groups[f.group][team] = {team, group:f.group, pts:0, gd:0, gf:0, ga:0, played:0};
-    });
-    const h = groups[f.group][f.home], a = groups[f.group][f.away];
-    h.played++; a.played++;
-    h.gf += r.h; h.ga += r.a; h.gd = h.gf - h.ga;
-    a.gf += r.a; a.ga += r.h; a.gd = a.gf - a.ga;
-    if (r.h > r.a) h.pts += 3;
-    else if (r.h < r.a) a.pts += 3;
-    else { h.pts += 1; a.pts += 1; }
-  });
-  const sorted = {};
-  Object.keys(groups).forEach(g => {
-    sorted[g] = Object.values(groups[g]).sort((x,y) => y.pts-x.pts || y.gd-x.gd || y.gf-x.gf || x.team.localeCompare(y.team));
-  });
-  return sorted;
+function getSelectableTeams() {
+  const set = new Set();
+  FIXTURES.forEach(f => { set.add(f.home); set.add(f.away); });
+  return Array.from(set).sort((a,b)=>a.localeCompare(b));
 }
 
-function getQualifiedTeams() {
-  const tables = getGroupTable();
-  const qualified = { winners:{}, runners:{}, thirds:[] };
-  Object.keys(tables).sort().forEach(g => {
-    const rows = tables[g];
-    if (rows[0]) qualified.winners[g] = rows[0];
-    if (rows[1]) qualified.runners[g] = rows[1];
-    if (rows[2]) qualified.thirds.push(rows[2]);
-  });
-  qualified.thirds.sort((a,b) => b.pts-a.pts || b.gd-a.gd || b.gf-a.gf || a.group.localeCompare(b.group));
-  qualified.bestThirds = qualified.thirds.slice(0,8);
-  qualified.bestThirdGroups = qualified.bestThirds.map(t => t.group).sort();
-  return qualified;
-}
-
-function findThirdPlaceTeam(patternId) {
-  const q = getQualifiedTeams();
-  const allowed = THIRD_PLACE_PATTERNS[patternId] || [];
-  const team = q.bestThirds.find(t => allowed.includes(t.group));
-  return team ? team.team : `Best 3rd-place (${allowed.join('/')})`;
-}
-
-function getFixtureResultById(id) {
-  return liveResults[id] || null;
-}
-
-function getWinnerFromResult(id) {
-  const fixture = allFixtures().find(f => String(f.id) === String(id));
-  const result = getFixtureResultById(id);
-  if (!fixture || !result) return null;
-  if (result.h === result.a) return `${fixture.home} / ${fixture.away} (ET/Pens)`;
-  return result.h > result.a ? fixture.home : fixture.away;
-}
-
-function getLoserFromResult(id) {
-  const fixture = allFixtures().find(f => String(f.id) === String(id));
-  const result = getFixtureResultById(id);
-  if (!fixture || !result) return null;
-  if (result.h === result.a) return `${fixture.home} / ${fixture.away} (ET/Pens)`;
-  return result.h < result.a ? fixture.home : fixture.away;
-}
-
-function resolveBracketTeam(slot) {
-  if (!slot) return 'TBD';
-  const q = getQualifiedTeams();
-  if (slot.type === 'winner') return q.winners[slot.group]?.team || `Winner Group ${slot.group}`;
-  if (slot.type === 'runnerup') return q.runners[slot.group]?.team || `Runner-up Group ${slot.group}`;
-  if (slot.type === 'third') return findThirdPlaceTeam(slot.pattern);
-  if (slot.type === 'winnerMatch') return getWinnerFromResult(slot.match) || `Winner ${slot.match.toUpperCase()}`;
-  if (slot.type === 'loserMatch') return getLoserFromResult(slot.match) || `Loser ${slot.match.toUpperCase()}`;
-  return 'TBD';
-}
-
-function renderBracketMatch(m) {
-  const fixture = getKnockoutFixtures().find(f => f.id === m.id) || m;
-  const res = liveResults[m.id];
-  const homeScore = res ? res.h : '—';
-  const awayScore = res ? res.a : '—';
-  const homeWinner = res && res.h > res.a;
-  const awayWinner = res && res.a > res.h;
-  return `<div class="bracket-match">
-    <div class="bracket-meta"><span>${m.label}</span><span>${fmtDate(m.date)}</span></div>
-    <div class="bracket-team ${homeWinner ? 'winner' : ''}"><span>${fixture.home}</span><span class="bracket-score">${homeScore}</span></div>
-    <div class="bracket-team ${awayWinner ? 'winner' : ''}"><span>${fixture.away}</span><span class="bracket-score">${awayScore}</span></div>
-    <div class="bracket-path">${m.loserNext ? 'Loser → ' + m.loserNext.toUpperCase() + ' · ' : ''}${m.next ? 'Winner → ' + m.next.toUpperCase() : 'Winner decided here'}</div>
-  </div>`;
+function stageTitle(stage) {
+  return ({r32:'Round of 32', r16:'Round of 16', qf:'Quarter-final', semi:'Semi-final', third:'Third-place match', final:'Final'})[stage] || 'Knockout';
 }
 
 function renderKnockout(tc) {
-  const q = getQualifiedTeams();
-  let h = `<div class="card"><div class="knockout-hero"><div><p class="section-title">knockout bracket</p><div class="knockout-note">The bracket is now connected to group results. It fills winners, runners-up, the best eight third-placed teams, and then advances winners automatically through the knockout rounds.</div></div><div class="info-box" style="margin:0;max-width:340px">Qualified so far: <strong>${Object.keys(q.winners).length * 2 + q.bestThirds.length}</strong> teams mapped from results entered.</div></div>`;
-  h += `<div class="bracket-wrap"><div class="bracket">`;
-  KNOCKOUT_TEMPLATE.forEach(col => {
-    h += `<div class="bracket-col"><div class="bracket-head">${col.title}</div><div class="bracket-list">${col.matches.map(renderBracketMatch).join('')}</div></div>`;
+  const byStage = {};
+  getManualKnockoutFixtures().forEach(f => { if(!byStage[f.stage]) byStage[f.stage]=[]; byStage[f.stage].push(f); });
+  let h = `<div class="card"><p class="section-title">official knockout fixtures</p><div class="info-box">Knockout fixture dates are loaded. Teams remain TBD until you assign them in Admin.</div></div>`;
+  ['r32','r16','qf','semi','third','final'].forEach(stage => {
+    const rows = byStage[stage] || [];
+    if (!rows.length) return;
+    h += `<div class="card"><p class="section-title">${stageTitle(stage)}</p>`;
+    rows.forEach(f => {
+      const r = liveResults[f.id];
+      h += `<div class="fixture-card ${r ? 'locked' : ''}"><div class="fix-meta"><span class="fix-group">${f.label}</span><span class="fix-time">${fmtDate(f.date)} | ${f.ist} IST</span></div><div class="fix-body"><span class="fix-team">${f.home}</span><div class="score-box">${r ? `<span class="pred-locked">${r.h} - ${r.a}</span>` : `<span style="color:#bbb;font-size:13px">vs</span>`}</div><span class="fix-team right">${f.away}</span></div></div>`;
+    });
+    h += `</div>`;
   });
-  h += `</div></div></div>`;
   tc.innerHTML = h;
+}
+
+function saveKnockoutTeams(id) {
+  const home = document.getElementById('kh_'+id)?.value || 'TBD';
+  const away = document.getElementById('ka_'+id)?.value || 'TBD';
+  db.ref(`results/__knockoutTeams/${id}`).set({home, away}).catch(e => alert('Error: ' + e.message));
 }
 
 function renderRules(tc) {
   tc.innerHTML = `
   <div class="card"><p class="section-title">scoring system</p>
-    ${[['+5','Exact scoreline','Predicted 2–1 and it ended exactly 2–1 in the group stage'],['+3','Correct result','Right outcome (win/draw), any score in the group stage'],['+1','Correct goal diff.','Same margin, different score (e.g. 2–0 vs 3–1) in the group stage'],['1.5×','Post-group knockout rounds','Round of 32, Round of 16 and quarter-finals earn 1.5 times the normal points'],['2×','Semi-finals and finals','Semi-finals, third-place match and final earn double points'],['0','Wrong result','Predicted wrong outcome']]
+    ${[['+5','Exact scoreline','Predicted 2–1 and it ended exactly 2–1'],['+3','Correct result','Right outcome (win/draw), any score'],['+1','Correct goal diff.','Same margin, different score (e.g. 2–0 vs 3–1)'],['0','Wrong result','Predicted wrong outcome']]
     .map(([p,t,s]) => `<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
       <span style="font-size:13px;font-weight:600;padding:3px 10px;border-radius:100px;background:#e6f1fb;color:#0c447c;min-width:40px;text-align:center;flex-shrink:0">${p}</span>
       <div><div style="font-size:14px;font-weight:500">${t}</div><div style="font-size:12px;color:#888;margin-top:2px">${s}</div></div>
@@ -930,11 +771,11 @@ function renderAdmin(tc) {
   const nextDay = new Date(ist.getTime() + 24*60*60*1000);
   const nextDayIST = `${nextDay.getUTCFullYear()}-${pad(nextDay.getUTCMonth()+1)}-${pad(nextDay.getUTCDate())}`;
 
-  const adminFixtures = FIXTURES.filter(f => f.date <= nextDayIST || f.date === activeDate).slice(-30);
+  const activeDate = getActivePredictionDate();
+  const adminFixtures = allFixtures().filter(f => f.date <= nextDayIST || f.date === activeDate).slice(-60);
   const byDate = {};
   adminFixtures.forEach(f => { if(!byDate[f.date]) byDate[f.date]=[]; byDate[f.date].push(f); });
 
-  const activeDate = getActivePredictionDate();
   const submissionCount = liveMembers.filter(m => hasSubmitted(m.name, activeDate)).length;
 
   let h = `
@@ -954,7 +795,7 @@ function renderAdmin(tc) {
     byDate[date].forEach(f => {
       const r = liveResults[f.id];
       h += `<div class="admin-fix-row">
-        <div class="ateams">${f.home} vs ${f.away} <span style="font-size:11px;color:#aaa">Grp ${f.group} · ${f.ist} IST</span></div>`;
+        <div class="ateams">${f.home} vs ${f.away} <span style="font-size:11px;color:#aaa">${f.label || ('Grp ' + f.group)} | ${f.ist} IST</span></div>`;
       if (r) {
         h += `<span class="entered-tag">${r.h}–${r.a} ✓</span>
               <button class="btn-sm" style="font-size:11px;padding:2px 8px" onclick="clearRes(${f.id})">Edit</button>`;
@@ -988,6 +829,14 @@ function renderAdmin(tc) {
            </button>`
         : ''}
     </div>`;
+  });
+
+
+  h += `</div><div class="card"><p class="section-title">assign knockout teams</p>
+  <div class="info-box" style="margin-bottom:12px">Use the dropdowns to assign teams manually to the official knockout fixtures when those rounds begin.</div>`;
+  const selectableTeams = getSelectableTeams();
+  getManualKnockoutFixtures().forEach(f => {
+    h += `<div class="admin-fix-row" style="display:block;padding:10px 0"><div style="font-size:12px;font-weight:700;color:#666;margin-bottom:6px">${f.label} | ${fmtDate(f.date)} | ${f.ist} IST</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select class="edit-inp" id="kh_${f.id}" style="min-width:180px"><option value="TBD">Home team</option>${selectableTeams.map(t => `<option value="${t}" ${f.home===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:12px;color:#999">vs</span><select class="edit-inp" id="ka_${f.id}" style="min-width:180px"><option value="TBD">Away team</option>${selectableTeams.map(t => `<option value="${t}" ${f.away===t?'selected':''}>${t}</option>`).join('')}</select><button class="btn-save" onclick="saveKnockoutTeams('${f.id}')">Save teams</button></div></div>`;
   });
 
   h += `</div><div class="card"><p class="section-title">manage members & PINs</p>
