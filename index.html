@@ -112,8 +112,8 @@ select.inp { cursor: pointer; }
 <div class="app">
   <div class="header">
     <div style="font-size:34px;margin-bottom:6px">🏆</div>
-    <h1>WC 2026 Office Predictor</h1>
-    <p>Lead and Leap · June 12 – July 19, 2026</p>
+    <h1>World Cup 2026 Predictor - Lead and Leap</h1>
+    <p>June 12 – July 19, 2026</p>
   </div>
   <div id="root"><div class="loading"><div class="spinner"></div><span style="font-size:14px;color:#888">Connecting...</span></div></div>
 </div>
@@ -793,7 +793,7 @@ function updateMember(i, field, val) {
 }
 
 function copyMsg(name, pin) {
-  const msg = `Hi ${name}! 🏆\n\nYou're invited to our WC 2026 Office Prediction Contest!\n\n🔗 App: https://ll-wc-prediction.vercel.app\n👤 Name: ${name}\n🔑 PIN: ${pin}\n\nPredict tomorrow's match scores every evening before 10 PM IST.\nMost points by July 19 wins the prize!\n\nGood luck! ⚽🇮🇳`;
+  const msg = `Hi ${name}! 🏆\n\nYou're invited to our World Cup 2026 Prediction Contest by Lead and Leap!\n\n🔗 App: https://ll-wc-prediction.vercel.app\n👤 Name: ${name}\n🔑 PIN: ${pin}\n\nPredict tomorrow's match scores every evening before 10 PM IST.\nMost points by July 19 wins the prize!\n\nGood luck! ⚽🇮🇳`;
   navigator.clipboard?.writeText(msg)
     .then(() => alert('✅ Copied! Paste in WhatsApp to ' + name))
     .catch(() => alert('PIN for ' + name + ': ' + pin));
