@@ -689,11 +689,11 @@ function renderAdmin(tc) {
   const nextDay = new Date(ist.getTime() + 24*60*60*1000);
   const nextDayIST = `${nextDay.getUTCFullYear()}-${pad(nextDay.getUTCMonth()+1)}-${pad(nextDay.getUTCDate())}`;
 
+  const activeDate = getActivePredictionDate();
   const adminFixtures = FIXTURES.filter(f => f.date <= nextDayIST || f.date === activeDate).slice(-30);
   const byDate = {};
   adminFixtures.forEach(f => { if(!byDate[f.date]) byDate[f.date]=[]; byDate[f.date].push(f); });
 
-  const activeDate = getActivePredictionDate();
   const submissionCount = liveMembers.filter(m => hasSubmitted(m.name, activeDate)).length;
 
   let h = `
@@ -755,8 +755,8 @@ function renderAdmin(tc) {
     <tr><th>#</th><th>Name</th><th>PIN</th><th></th></tr>
     ${liveMembers.map((m,i) => `<tr>
       <td style="color:#aaa;font-size:12px">${i+1}</td>
-      <td><input class="edit-inp" value="${m.name}" style="width:110px" onchange="updateMember(${i},'name',this.value)"></td>
-      <td><input class="edit-inp" maxlength="4" value="${m.pin}" style="width:60px;font-family:monospace;font-weight:700;color:#185fa5;text-align:center" onchange="updateMember(${i},'pin',this.value)"></td>
+      <td><input class="edit-inp" value="${m.name}" style="width:110px" oninput="updateMember(${i},'name',this.value)"></td>
+      <td><input class="edit-inp" maxlength="4" value="${m.pin}" style="width:60px;font-family:monospace;font-weight:700;color:#185fa5;text-align:center" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,4);updateMember(${i},'pin',this.value)"></td>
       <td><button class="copy-btn" onclick="copyMsg('${m.name}','${m.pin}')">Copy msg</button></td>
     </tr>`).join('')}
   </table>
