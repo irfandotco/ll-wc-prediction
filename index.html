@@ -683,7 +683,7 @@ function renderAdmin(tc) {
   const nextDay = new Date(ist.getTime() + 24*60*60*1000);
   const nextDayIST = `${nextDay.getUTCFullYear()}-${pad(nextDay.getUTCMonth()+1)}-${pad(nextDay.getUTCDate())}`;
 
-  const adminFixtures = FIXTURES.filter(f => f.date <= nextDayIST).slice(-30);
+  const adminFixtures = FIXTURES.filter(f => f.date <= nextDayIST || f.date === activeDate).slice(-30);
   const byDate = {};
   adminFixtures.forEach(f => { if(!byDate[f.date]) byDate[f.date]=[]; byDate[f.date].push(f); });
 
