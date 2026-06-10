@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>World Cup 2026 Predictor - Lead and Leap</title>
 
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
@@ -20,8 +21,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 .tab.active { background: #fff; color: #111; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
 .card { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 14px; padding: 1rem 1.2rem; margin-bottom: 1rem; }
 .section-title { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 1rem; }
+
+/* LOGIN */
 .login-wrap { max-width: 360px; margin: 1rem auto; }
-.login-wrap h2 { font-size: 19px; font-weight: 600; margin-bottom: 5px; }
+.login-wrap h2 { font-size: 19px; font-weight: 600; margin-bottom: 5px; letter-spacing: -0.3px; }
 .login-wrap .sub { font-size: 13px; color: #666; margin-bottom: 1.2rem; }
 .field-label { font-size: 12px; font-weight: 500; color: #666; margin-bottom: 5px; }
 .inp { width: 100%; padding: 10px 13px; font-size: 14px; border: 1px solid rgba(0,0,0,0.18); border-radius: 10px; background: #fff; color: #111; margin-bottom: 10px; }
@@ -30,19 +33,19 @@ select.inp { cursor: pointer; }
 .pin-row { display: flex; gap: 10px; margin-bottom: 12px; justify-content: center; }
 .pin-d { width: 54px; height: 54px; text-align: center; font-size: 22px; font-weight: 600; border: 1px solid rgba(0,0,0,0.18); border-radius: 10px; background: #fff; color: #111; }
 .pin-d:focus { outline: none; border-color: #185fa5; box-shadow: 0 0 0 3px rgba(24,95,165,0.1); }
-.btn-primary { width: 100%; padding: 11px; font-size: 15px; font-weight: 600; background: #185fa5; color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: opacity 0.15s; }
+.btn-primary { width: 100%; padding: 11px; font-size: 15px; font-weight: 600; background: #185fa5; color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: opacity 0.15s; letter-spacing: -0.2px; }
 .btn-primary:hover { opacity: 0.88; }
 .btn-sm { padding: 5px 11px; font-size: 12px; font-weight: 500; background: transparent; color: #111; border: 1px solid rgba(0,0,0,0.18); border-radius: 7px; cursor: pointer; }
 .btn-sm:hover { background: #f0f0f0; }
 .btn-submit { padding: 11px 28px; font-size: 14px; font-weight: 600; background: #1a7f37; color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: opacity 0.15s; }
 .btn-submit:hover { opacity: 0.88; }
-.btn-unlock { padding: 5px 12px; font-size: 12px; font-weight: 600; background: #e65100; color: #fff; border: none; border-radius: 7px; cursor: pointer; }
-.btn-lock { padding: 5px 12px; font-size: 12px; font-weight: 600; background: #555; color: #fff; border: none; border-radius: 7px; cursor: pointer; }
 .error-msg { font-size: 13px; color: #a32d2d; background: #fcebeb; padding: 9px 12px; border-radius: 8px; margin-bottom: 10px; }
 .info-box { background: #e6f1fb; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: #0c447c; margin-bottom: 1rem; line-height: 1.6; }
 .warn-box { background: #fff8e1; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: #7a5100; margin-bottom: 1rem; line-height: 1.6; border: 1px solid #ffe082; }
 .success-box { background: #e8f5e9; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: #1a5c2a; margin-bottom: 1rem; line-height: 1.6; border: 1px solid #a5d6a7; }
 .danger-box { background: #fcebeb; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: #a32d2d; margin-bottom: 1rem; line-height: 1.6; }
+
+/* FIXTURE CARDS */
 .fixture-card { border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; background: #fff; transition: border-color 0.15s; }
 .fixture-card:focus-within { border-color: #185fa5; }
 .fixture-card.locked { background: #fafafa; }
@@ -55,17 +58,21 @@ select.inp { cursor: pointer; }
 .score-box { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
 .sinp { width: 42px; height: 40px; text-align: center; font-size: 17px; font-weight: 600; border: 1px solid rgba(0,0,0,0.18); border-radius: 8px; background: #fff; color: #111; padding: 0; }
 .sinp:focus { outline: none; border-color: #185fa5; box-shadow: 0 0 0 2px rgba(24,95,165,0.1); }
+.sinp:disabled { background: #f5f5f5; color: #888; border-color: rgba(0,0,0,0.1); cursor: not-allowed; }
 .vsep { font-size: 15px; color: #bbb; font-weight: 600; }
 .pred-locked { font-size: 17px; font-weight: 600; color: #185fa5; letter-spacing: 3px; }
+
+/* BADGES */
 .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 100px; font-weight: 600; }
 .b-open { background: #e8f5e9; color: #1a5c2a; }
 .b-closed { background: #fcebeb; color: #a32d2d; }
 .b-submitted { background: #e6f1fb; color: #0c447c; }
-.b-unlocked { background: #fff3e0; color: #e65100; }
 .b-exact { background: #e8f5e9; color: #1a5c2a; }
 .b-correct { background: #e6f1fb; color: #0c447c; }
 .b-partial { background: #fff8e1; color: #7a5100; }
 .b-wrong { background: #fcebeb; color: #a32d2d; }
+
+/* LEADERBOARD */
 .lb-row { display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 10px; margin: 0 -8px; }
 .lb-row.me { background: #e6f1fb; }
 .lb-rank { font-size: 15px; width: 28px; text-align: center; flex-shrink: 0; }
@@ -76,16 +83,22 @@ select.inp { cursor: pointer; }
 .lb-pts { font-size: 22px; font-weight: 700; color: #185fa5; text-align: right; }
 .lb-ptslabel { font-size: 10px; color: #888; text-align: right; }
 .you-pill { font-size: 10px; padding: 1px 6px; border-radius: 100px; background: #e6f1fb; color: #185fa5; margin-left: 5px; font-weight: 600; vertical-align: middle; }
+
+/* STATS */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1rem; }
 .stat-card { background: #f5f5f7; border-radius: 10px; padding: 10px; text-align: center; }
 .stat-num { font-size: 24px; font-weight: 700; color: #185fa5; }
 .stat-label { font-size: 11px; color: #888; margin-top: 2px; }
+
+/* DEADLINE BAR */
 .deadline-bar { display: flex; align-items: center; justify-content: space-between; background: #f5f5f7; border-radius: 10px; padding: 10px 14px; margin-bottom: 1rem; border: 1px solid rgba(0,0,0,0.06); }
 .dl-label { font-size: 11px; color: #888; }
 .dl-val { font-size: 14px; font-weight: 600; }
 .countdown { font-family: 'SF Mono', 'Fira Mono', monospace; font-size: 16px; font-weight: 700; color: #185fa5; }
 .countdown.urgent { color: #c0392b; animation: pulse 1s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+/* ADMIN TABLE */
 .admin-fix-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 13px; }
 .admin-fix-row:last-child { border-bottom: none; }
 .ateams { flex: 1; font-size: 13px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -102,6 +115,8 @@ select.inp { cursor: pointer; }
 .edit-inp:focus { outline: none; border-color: #185fa5; }
 .copy-btn { font-size: 11px; padding: 3px 9px; border-radius: 5px; background: #f0f0f0; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; color: #555; font-weight: 500; }
 .copy-btn:hover { background: #e0e0e0; }
+
+/* LOADING */
 .loading { display: flex; align-items: center; justify-content: center; padding: 3rem; flex-direction: column; gap: 12px; }
 .spinner { width: 32px; height: 32px; border: 3px solid #e0e0e0; border-top-color: #185fa5; border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -113,12 +128,16 @@ select.inp { cursor: pointer; }
   <div class="header">
     <div style="font-size:34px;margin-bottom:6px">🏆</div>
     <h1>WC 2026 Office Predictor</h1>
-    <p>Lead and Leap · June 12 – July 19, 2026</p>
+    <p>Calicut · June 12 – July 19, 2026</p>
   </div>
   <div id="root"><div class="loading"><div class="spinner"></div><span style="font-size:14px;color:#888">Connecting...</span></div></div>
 </div>
 
 <script>
+// ════════════════════════════════════════════════════════════════════
+// FIREBASE CONFIG — Replace with your own Firebase project config
+// Get this from: Firebase Console → Project Settings → Your Apps → SDK setup
+// ════════════════════════════════════════════════════════════════════
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyD1izkHZDaxbSQhMQg5IZtLx3zCamu94xk",
   authDomain: "wc2026-predictor-34614.firebaseapp.com",
@@ -130,6 +149,9 @@ const FIREBASE_CONFIG = {
   measurementId: "G-WMWL8F4V9R"
 };
 
+// ════════════════════════════════════════════════════════════════════
+// FIXTURES
+// ════════════════════════════════════════════════════════════════════
 const FIXTURES = [
   {id:1,date:'2026-06-12',group:'A',home:'Mexico',away:'South Africa',ist:'00:30'},
   {id:2,date:'2026-06-12',group:'A',home:'South Korea',away:'Czechia',ist:'07:30'},
@@ -216,42 +238,58 @@ const DEFAULT_MEMBERS = [
 ];
 const ADMIN_PIN = '9999';
 
-// ── STATE ─────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// APP STATE — all live data comes from Firebase
+// ════════════════════════════════════════════════════════════════════
 let db;
 let session = JSON.parse(sessionStorage.getItem('wc_session') || 'null');
 let tab = 'predict';
 let countdownTimer = null;
 
-let liveMembers  = DEFAULT_MEMBERS;
-let livePredictions = {};
-let liveSubmitted   = {};
-let liveResults     = {};
-let liveUnlocked    = {};  // { memberName: { date_key: true } }
+// Live data from Firebase (updated via listeners)
+let liveMembers = DEFAULT_MEMBERS;
+let livePredictions = {};   // { name: { matchId: {h,a} } }
+let liveSubmitted = {};     // { name: { date: true } }
+let liveResults = {};       // { matchId: {h,a} }
+let liveUnlocked = {};      // { name: { date: true } } — admin unlocked for re-edit
 let liveLoaded = false;
 
-// ── DATE / DEADLINE ───────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// DATE / DEADLINE LOGIC
+// ════════════════════════════════════════════════════════════════════
+
+// ── TESTING OVERRIDE ──────────────────────────────────────────────
+// June 12 fixtures are LIVE NOW for testing.
+// On June 11 night remove the override line below and the app
+// will automatically show the correct date based on 10 PM IST deadline.
+// ─────────────────────────────────────────────────────────────────
 function getActivePredictionDate() {
-  return '2026-06-12'; // ← TESTING OVERRIDE — remove this line on June 11 to go live
+  return '2026-06-12'; // ← TESTING OVERRIDE: remove this line on June 11 to go live
+  // --- normal logic below (auto-runs after removing line above) ---
   const now = new Date();
   const ist = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
   const h = ist.getUTCHours() + ist.getUTCMinutes() / 60;
-  const pad = n => String(n).padStart(2,'0');
+  const tomorrow = new Date(ist.getTime() + 24 * 60 * 60 * 1000);
+  const pad = n => String(n).padStart(2, '0');
   const fmt = d => `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
-  const tomorrow = new Date(ist.getTime() + 24*60*60*1000);
+  // After 10 PM show day-after-tomorrow; before 10 PM show tomorrow
   if (h >= 22) {
-    return fmt(new Date(ist.getTime() + 48*60*60*1000));
+    const dat = new Date(ist.getTime() + 48 * 60 * 60 * 1000);
+    return fmt(dat);
   }
   return fmt(tomorrow);
 }
 
 function getDeadline(matchDate) {
+  // 10 PM IST of the day before = 16:30 UTC of the day before
   const d = new Date(matchDate + 'T16:30:00Z');
   d.setDate(d.getDate() - 1);
   return d;
 }
 
 function deadlinePassed() {
-  return false; // ← TESTING OVERRIDE — remove this line on June 11 to go live
+  // During testing always return false so predictions stay open
+  return false; // ← TESTING OVERRIDE: remove this line on June 11
   return new Date() > getDeadline(getActivePredictionDate());
 }
 
@@ -259,23 +297,27 @@ function fmtDate(ds) {
   return new Date(ds + 'T12:00:00').toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long'});
 }
 
-function dateKey(date) {
-  return date.replace(/-/g, '_');
-}
-
-// ── FIREBASE ──────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// FIREBASE INIT + LISTENERS
+// ════════════════════════════════════════════════════════════════════
 function initFirebase() {
   try {
     firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.database();
 
+    // Seed members if not yet in DB
     db.ref('members').once('value', snap => {
-      if (!snap.exists()) db.ref('members').set(DEFAULT_MEMBERS);
+      if (!snap.exists()) {
+        db.ref('members').set(DEFAULT_MEMBERS);
+      } else {
+        liveMembers = snap.val();
+      }
     });
 
+    // Live listeners
     db.ref('members').on('value', snap => {
       if (snap.exists()) liveMembers = snap.val();
-      liveLoaded = true; tryRender();
+      tryRender();
     });
     db.ref('predictions').on('value', snap => {
       livePredictions = snap.exists() ? snap.val() : {};
@@ -294,28 +336,27 @@ function initFirebase() {
       tryRender();
     });
 
+    liveLoaded = true;
+    tryRender();
   } catch(e) {
-    console.error('Firebase error:', e);
+    console.error('Firebase init failed:', e);
     document.getElementById('root').innerHTML = `
-      <div class="card" style="max-width:400px;margin:2rem auto;text-align:center">
+      <div class="card" style="max-width:420px;margin:2rem auto;text-align:center">
         <div style="font-size:28px;margin-bottom:10px">⚙️</div>
-        <h2 style="font-size:17px;margin-bottom:8px">Connection failed</h2>
-        <p style="font-size:13px;color:#666">Check Firebase config in index.html</p>
+        <h2 style="font-size:17px;margin-bottom:8px">Firebase not configured</h2>
+        <p style="font-size:13px;color:#666;line-height:1.6">Open <code>index.html</code> and replace <code>FIREBASE_CONFIG</code> with your Firebase project details.<br><br>See <code>SETUP.md</code> for step-by-step instructions.</p>
       </div>`;
   }
 }
 
 function tryRender() {
   if (!liveLoaded) return;
-  // If shell already exists, just refresh tab content (don't reset the whole page)
-  if (session && document.getElementById('tc')) {
-    renderTabContent();
-  } else {
-    render();
-  }
+  render();
 }
 
-// ── SCORING ───────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// SCORING
+// ════════════════════════════════════════════════════════════════════
 function calcPts(p, r) {
   if (!p || !r) return null;
   const ph=+p.h, pa=+p.a, rh=+r.h, ra=+r.a;
@@ -348,20 +389,24 @@ function leaderboard() {
 }
 
 function hasSubmitted(name, date) {
-  return !!(liveSubmitted[name] && liveSubmitted[name][dateKey(date)]);
+  return !!(liveSubmitted[name] && liveSubmitted[name][date.replace(/-/g,'_')]);
 }
 
 function isUnlocked(name, date) {
-  return !!(liveUnlocked[name] && liveUnlocked[name][dateKey(date)]);
+  return !!(liveUnlocked[name] && liveUnlocked[name][date.replace(/-/g,'_')]);
 }
 
-// ── AVATARS ───────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// AVATAR COLORS
+// ════════════════════════════════════════════════════════════════════
 const AV_BG=['#e6f1fb','#e8f5e9','#fff8e1','#fce4ec','#f3e5f5','#e0f7fa','#fff3e0'];
 const AV_TX=['#0c447c','#1a5c2a','#7a5100','#880e4f','#4a148c','#006064','#e65100'];
 function avC(name){let h=0;for(let c of name)h=(h*31+c.charCodeAt(0))%7;return{bg:AV_BG[h],tx:AV_TX[h]};}
 function initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
 
-// ── RENDER SHELL ──────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// RENDER SHELL
+// ════════════════════════════════════════════════════════════════════
 function render() {
   const root = document.getElementById('root');
   if (!session) { renderLogin(root); return; }
@@ -370,7 +415,6 @@ function render() {
 
 function setTab(t) {
   tab = t;
-  // update active tab highlight
   document.querySelectorAll('.tab').forEach(el => {
     el.classList.toggle('active', el.dataset.tab === t);
   });
@@ -383,29 +427,32 @@ function renderApp(root) {
     ? [['admin','⚙️ Admin'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']]
     : [['predict','⚽ Predict'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']];
 
-  // Always rebuild the shell so tabs stay in sync with session/tab state
-  root.innerHTML = `
-    <div class="tabs">${tabs.map(([id,lbl])=>`<button class="tab ${tab===id?'active':''}" data-tab="${id}" onclick="setTab('${id}')">${lbl}</button>`).join('')}</div>
-    <div id="tc"></div>
-    <div style="text-align:center;margin-top:8px">
-      <span style="font-size:12px;color:#888">${isAdmin ? 'Admin session' : 'Signed in as <strong>'+session.name+'</strong>'}</span>
-      <button class="btn-sm" onclick="doLogout()" style="margin-left:8px;font-size:11px;padding:3px 9px">Sign out</button>
-    </div>`;
-
+  // Only rebuild shell if not already there
+  if (!document.getElementById('tc')) {
+    root.innerHTML = `
+      <div class="tabs">${tabs.map(([id,lbl])=>`<button class="tab ${tab===id?'active':''}" data-tab="${id}" onclick="setTab('${id}')">${lbl}</button>`).join('')}</div>
+      <div id="tc"></div>
+      <div style="text-align:center;margin-top:8px">
+        <span style="font-size:12px;color:#888">${isAdmin?'Admin session':'Signed in as <strong>'+session.name+'</strong>'}</span>
+        <button class="btn-sm" onclick="doLogout()" style="margin-left:8px;font-size:11px;padding:3px 9px">Sign out</button>
+      </div>`;
+  }
   renderTabContent();
 }
 
 function renderTabContent() {
   const tc = document.getElementById('tc');
   if (!tc) return;
-  if      (tab==='predict'     && !session.admin) renderPredict(tc);
-  else if (tab==='leaderboard')                   renderLeaderboard(tc);
-  else if (tab==='results')                       renderResults(tc);
-  else if (tab==='rules')                         renderRules(tc);
-  else if (tab==='admin'       && session.admin)  renderAdmin(tc);
+  if (tab==='predict' && !session.admin) renderPredict(tc);
+  else if (tab==='leaderboard') renderLeaderboard(tc);
+  else if (tab==='results') renderResults(tc);
+  else if (tab==='rules') renderRules(tc);
+  else if (tab==='admin' && session.admin) renderAdmin(tc);
 }
 
-// ── LOGIN ─────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════════════════════════════════
 function renderLogin(root) {
   root.innerHTML = `
   <div class="login-wrap">
@@ -432,6 +479,7 @@ function renderLogin(root) {
       Your PIN was shared by the admin (Irfan). Each person has a unique 4-digit PIN. Contact Irfan if you need yours.
     </div>
   </div>`;
+
   for (let i=0; i<4; i++) {
     const el = document.getElementById('p'+i);
     el.addEventListener('input', () => { if(el.value && i<3) document.getElementById('p'+(i+1)).focus(); });
@@ -441,8 +489,8 @@ function renderLogin(root) {
 
 function doLogin() {
   const name = document.getElementById('sel').value;
-  const pin  = [0,1,2,3].map(i => document.getElementById('p'+i).value).join('');
-  const err  = document.getElementById('lerr');
+  const pin = [0,1,2,3].map(i => document.getElementById('p'+i).value).join('');
+  const err = document.getElementById('lerr');
   if (!name) { err.innerHTML='<div class="error-msg">Please select your name.</div>'; return; }
   if (pin.length < 4) { err.innerHTML='<div class="error-msg">Enter your full 4-digit PIN.</div>'; return; }
   if (name === '__admin__') {
@@ -472,18 +520,20 @@ function doLogout() {
   render();
 }
 
-// ── PREDICT TAB ───────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// PREDICT TAB
+// ════════════════════════════════════════════════════════════════════
 function renderPredict(tc) {
   const me = session.name;
   const {total, correct, exact} = memberStats(me);
-  const lb    = leaderboard();
-  const rank  = lb.findIndex(r => r.name === me) + 1;
+  const lb = leaderboard();
+  const rank = lb.findIndex(r => r.name === me) + 1;
   const activeDate = getActivePredictionDate();
-  const fixtures   = FIXTURES.filter(f => f.date === activeDate);
-  const passed     = deadlinePassed();
-  const submitted  = hasSubmitted(me, activeDate);
-  const unlocked   = isUnlocked(me, activeDate);
-  const myPreds    = livePredictions[me] || {};
+  const fixtures = FIXTURES.filter(f => f.date === activeDate);
+  const passed = deadlinePassed();
+  const submitted = hasSubmitted(me, activeDate);
+  const unlocked = isUnlocked(me, activeDate);
+  const myPreds = livePredictions[me] || {};
 
   let h = `<div class="stats-grid">
     <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">points</div></div>
@@ -492,7 +542,7 @@ function renderPredict(tc) {
     <div class="stat-card"><div class="stat-num">${exact}</div><div class="stat-label">exact scores</div></div>
   </div>`;
 
-  if (!passed && (!submitted || unlocked)) {
+  if (!passed && !submitted) {
     h += `<div class="deadline-bar">
       <div><div class="dl-label">Predicting for</div><div class="dl-val">${fmtDate(activeDate)}</div></div>
       <div style="text-align:right"><div class="dl-label">Deadline tonight</div><div class="countdown" id="cdtimer">--:--:--</div></div>
@@ -501,9 +551,7 @@ function renderPredict(tc) {
 
   if (!fixtures.length) {
     h += `<div class="card"><div class="empty-state">No fixtures for ${fmtDate(activeDate)}<br>Check back later ⚽</div></div>`;
-
   } else if (submitted && !unlocked) {
-    // LOCKED STATE
     h += `<div class="success-box">✅ Your predictions for <strong>${fmtDate(activeDate)}</strong> are locked in. Good luck!</div>`;
     h += `<div class="card"><p class="section-title">your locked predictions</p>`;
     fixtures.forEach(f => {
@@ -525,19 +573,13 @@ function renderPredict(tc) {
       </div>`;
     });
     h += `</div>`;
-
-  } else if (passed && !unlocked) {
+  } else if (passed) {
     h += `<div class="danger-box">⏰ The 10 PM deadline has passed. Predictions for <strong>${fmtDate(activeDate)}</strong> are closed.</div>`;
-
   } else {
-    // OPEN FOR PREDICTION (new or re-edit after unlock)
-    if (unlocked) {
-      h += `<div class="warn-box">🔓 Admin has unlocked your predictions. Update your scores and submit again before the deadline.</div>`;
-    }
     h += `<div class="card"><p class="section-title">predict ${fmtDate(activeDate)}</p>`;
     fixtures.forEach(f => {
       const pred = myPreds[f.id];
-      h += `<div class="fixture-card">
+      h += `<div class="fixture-card" id="fc${f.id}">
         <div class="fix-meta"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
         <div class="fix-body">
           <span class="fix-team">${f.home}</span>
@@ -559,7 +601,7 @@ function renderPredict(tc) {
   tc.innerHTML = h;
 
   if (countdownTimer) clearInterval(countdownTimer);
-  if (!passed && (!submitted || unlocked)) {
+  if (!passed && !submitted) {
     updateCountdown();
     countdownTimer = setInterval(updateCountdown, 1000);
   }
@@ -568,9 +610,12 @@ function renderPredict(tc) {
 function updateCountdown() {
   const el = document.getElementById('cdtimer');
   if (!el) { clearInterval(countdownTimer); return; }
-  const diff = getDeadline(getActivePredictionDate()) - new Date();
-  if (diff <= 0) { el.textContent='CLOSED'; el.classList.add('urgent'); clearInterval(countdownTimer); renderTabContent(); return; }
-  const hh=Math.floor(diff/3600000), mm=Math.floor((diff%3600000)/60000), ss=Math.floor((diff%60000)/1000);
+  const deadline = getDeadline(getActivePredictionDate());
+  const diff = deadline - new Date();
+  if (diff <= 0) { el.textContent = 'CLOSED'; el.classList.add('urgent'); clearInterval(countdownTimer); renderTabContent(); return; }
+  const hh = Math.floor(diff/3600000);
+  const mm = Math.floor((diff%3600000)/60000);
+  const ss = Math.floor((diff%60000)/1000);
   el.textContent = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
   if (diff < 3600000) el.classList.add('urgent');
 }
@@ -586,29 +631,40 @@ function doSubmit() {
   fixtures.forEach(f => {
     const hv = document.getElementById('h'+f.id)?.value;
     const av = document.getElementById('a'+f.id)?.value;
-    if (hv==='' || av==='' || hv===undefined || av===undefined) {
+    if (hv === '' || av === '' || hv === undefined || av === undefined) {
       missing.push(`${f.home} vs ${f.away}`);
     } else {
-      preds[f.id] = {h:+hv, a:+av};
+      preds[f.id] = {h: +hv, a: +av};
     }
   });
 
-  if (missing.length) { alert('Please fill scores for ALL matches:\n\n' + missing.join('\n')); return; }
-  if (!confirm(`Submit predictions for ${fmtDate(activeDate)}?\n\nYou cannot change them after submitting.`)) return;
+  if (missing.length) {
+    alert('Please fill scores for ALL matches before submitting:\n\n' + missing.join('\n'));
+    return;
+  }
 
+  if (!confirm(`Submit your predictions for ${fmtDate(activeDate)}?\n\nThis cannot be undone — you won't be able to change your picks after submitting.`)) return;
+
+  // Save to Firebase
   const updates = {};
-  Object.entries(preds).forEach(([id, score]) => {
-    updates[`predictions/${me}/${id}`] = score;
-  });
-  updates[`submitted/${me}/${dateKey(activeDate)}`] = true;
-  updates[`unlocked/${me}/${dateKey(activeDate)}`]  = null; // re-lock after submit
+
+Object.entries(preds).forEach(([id, score]) => {
+  updates[`predictions/${me}/${id}`] = score;
+});
+
+updates[`submitted/${me}/${activeDate.replace(/-/g,'_')}`] = true;
+
+// AUTO LOCK AGAIN AFTER RE-SUBMIT
+updates[`unlocked/${me}/${activeDate.replace(/-/g,'_')}`] = null;
 
   db.ref().update(updates)
-    .then(() => renderTabContent())
+    .then(() => { renderTabContent(); })
     .catch(e => alert('Error saving: ' + e.message));
 }
 
-// ── LEADERBOARD ───────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// LEADERBOARD
+// ════════════════════════════════════════════════════════════════════
 function renderLeaderboard(tc) {
   const lb = leaderboard();
   const me = session.name;
@@ -627,11 +683,13 @@ function renderLeaderboard(tc) {
       <div><div class="lb-pts">${row.total}</div><div class="lb-ptslabel">pts</div></div>
     </div>`;
   });
-  h += `</div><div class="info-box">🔴 Live — updates instantly as results are entered. Predictions hidden until 10 PM deadline each night.</div>`;
+  h += `</div><div class="info-box">🔴 Live — updates instantly as results are entered. Predictions are hidden until the 10 PM deadline passes each night.</div>`;
   tc.innerHTML = h;
 }
 
-// ── RESULTS ───────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// RESULTS
+// ════════════════════════════════════════════════════════════════════
 function renderResults(tc) {
   const done = FIXTURES.filter(f => liveResults[f.id]).reverse();
   const me = session.name;
@@ -649,47 +707,79 @@ function renderResults(tc) {
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px">`;
     liveMembers.forEach(m => {
-      const pred = (livePredictions[m.name]||{})[f.id];
-      if (!pred) return;
-      const pts = calcPts(pred, r);
-      const cls = pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':'b-wrong';
-      const isMe = m.name === me;
-      h += `<span style="font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;background:#f5f5f7;${isMe?'border:1.5px solid #185fa5;':''}">${m.name}: <strong>${pred.h}–${pred.a}</strong> <span class="badge ${cls}" style="font-size:10px;padding:1px 5px">+${pts}p</span></span>`;
-    });
-    h += `</div></div>`;
-  });
-  h += `</div>`;
+  const sub = hasSubmitted(m.name, activeDate);
+  const unlocked = isUnlocked(m.name, activeDate);
+  const av = avC(m.name);
+
+  h += `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
+    <div class="avatar" style="background:${av.bg};color:${av.tx};width:28px;height:28px;font-size:11px">${initials(m.name)}</div>
+
+    <span style="flex:1;font-size:13px;font-weight:500">${m.name}</span>
+
+    ${
+      sub
+      ? `<span class="badge ${unlocked ? 'b-open' : 'b-submitted'}">
+           ${unlocked ? '🔓 unlocked' : '✓ submitted'}
+         </span>`
+      : `<span class="badge b-closed">⏳ pending</span>`
+    }
+
+    ${
+      sub
+      ? `<button class="btn-sm"
+            onclick="toggleUnlock('${m.name}','${activeDate}',${unlocked})">
+            ${unlocked ? 'Lock' : 'Unlock'}
+         </button>`
+      : ''
+    }
+  </div>`;
+});
   tc.innerHTML = h;
 }
 
-// ── RULES ─────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// RULES
+// ════════════════════════════════════════════════════════════════════
 function renderRules(tc) {
   tc.innerHTML = `
   <div class="card"><p class="section-title">scoring system</p>
-    ${[['+5','Exact scoreline','Predicted 2–1 and it ended exactly 2–1'],['+3','Correct result','Right outcome (win/draw), any score'],['+1','Correct goal diff.','Same margin, different score (e.g. 2–0 vs 3–1)'],['0','Wrong result','Predicted wrong outcome']]
-    .map(([p,t,s]) => `<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+    ${[
+      ['+5','Exact scoreline','Predicted 2–1 and it ended exactly 2–1'],
+      ['+3','Correct result','Right outcome (win/draw), any score'],
+      ['+1','Correct goal diff.','Same margin, different score (e.g. 2–0 vs 3–1)'],
+      ['0','Wrong result','Predicted wrong outcome'],
+    ].map(([p,t,s]) => `<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
       <span style="font-size:13px;font-weight:600;padding:3px 10px;border-radius:100px;background:#e6f1fb;color:#0c447c;min-width:40px;text-align:center;flex-shrink:0">${p}</span>
       <div><div style="font-size:14px;font-weight:500">${t}</div><div style="font-size:12px;color:#888;margin-top:2px">${s}</div></div>
     </div>`).join('')}
   </div>
   <div class="card"><p class="section-title">contest rules</p>
-    ${[['⏰','10 PM IST deadline nightly','Each evening, predict the next day\'s matches. Predictions close strictly at 10 PM IST.'],['🔒','No editing after submit','Once you tap Submit, your predictions are final. Admin can unlock if needed.'],['👁','Picks hidden until deadline','Others cannot see your predictions until the 10 PM deadline passes.'],['🏆','Most points wins','After the July 19 final, highest total wins. Tiebreaker: exact scores → correct results.'],['📲','One account, one PIN','Your PIN is yours alone. Don\'t share it.']]
-    .map(([ic,t,s]) => `<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+    ${[
+      ['⏰','10 PM IST deadline nightly','Each evening, predict the next day\'s matches. Predictions close strictly at 10 PM IST.'],
+      ['🔒','No editing after submit','Once you tap Submit, your predictions are final. No exceptions.'],
+      ['👁','Picks hidden until deadline','Others cannot see your predictions until the 10 PM deadline passes.'],
+      ['🏆','Most points wins','After the July 19 final, highest total wins. Tiebreaker: exact scores → correct results.'],
+      ['📲','One account, one PIN','Your PIN is yours alone. Don\'t share it.'],
+    ].map(([ic,t,s]) => `<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
       <span style="font-size:16px;padding:4px 8px;border-radius:8px;background:#f5f5f7;flex-shrink:0">${ic}</span>
       <div><div style="font-size:14px;font-weight:600">${t}</div><div style="font-size:12px;color:#888;margin-top:2px">${s}</div></div>
     </div>`).join('')}
   </div>`;
 }
 
-// ── ADMIN TAB ─────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// ADMIN TAB
+// ════════════════════════════════════════════════════════════════════
 function renderAdmin(tc) {
   const now = new Date();
   const ist = new Date(now.getTime() + 5.5*60*60*1000);
   const pad = n => String(n).padStart(2,'0');
+  const todayIST = `${ist.getUTCFullYear()}-${pad(ist.getUTCMonth()+1)}-${pad(ist.getUTCDate())}`;
   const nextDay = new Date(ist.getTime() + 24*60*60*1000);
   const nextDayIST = `${nextDay.getUTCFullYear()}-${pad(nextDay.getUTCMonth()+1)}-${pad(nextDay.getUTCDate())}`;
 
-  const adminFixtures = FIXTURES.filter(f => f.date <= nextDayIST || f.date === activeDate).slice(-30);
+  // Show today + tomorrow + past 3 days
+  const adminFixtures = FIXTURES.filter(f => f.date <= nextDayIST).slice(-30);
   const byDate = {};
   adminFixtures.forEach(f => { if(!byDate[f.date]) byDate[f.date]=[]; byDate[f.date].push(f); });
 
@@ -700,13 +790,13 @@ function renderAdmin(tc) {
   <div class="warn-box">🔐 Admin panel · PIN 9999 · Do not share this screen.</div>
   <div class="stats-grid" style="margin-bottom:1rem">
     <div class="stat-card"><div class="stat-num">${liveMembers.length}</div><div class="stat-label">players</div></div>
-    <div class="stat-card"><div class="stat-num">${submissionCount}</div><div class="stat-label">submitted</div></div>
+    <div class="stat-card"><div class="stat-num">${submissionCount}</div><div class="stat-label">submitted today</div></div>
     <div class="stat-card"><div class="stat-num">${liveMembers.length - submissionCount}</div><div class="stat-label">pending</div></div>
     <div class="stat-card"><div class="stat-num">${Object.keys(liveResults).length}</div><div class="stat-label">results in</div></div>
   </div>
 
   <div class="card"><p class="section-title">enter match results</p>
-  <div class="info-box" style="margin-bottom:12px">Enter the final score after each match. Points calculate instantly for all players.</div>`;
+  <div class="info-box" style="margin-bottom:12px">Enter the final score after each match ends. Points calculate instantly and the leaderboard updates live for all 20 players.</div>`;
 
   Object.keys(byDate).sort().reverse().forEach(date => {
     h += `<div style="font-size:11px;font-weight:600;color:#888;padding:8px 0 5px;border-top:1px solid rgba(0,0,0,0.06);margin-top:4px;text-transform:uppercase;letter-spacing:0.05em">${fmtDate(date)}</div>`;
@@ -726,31 +816,22 @@ function renderAdmin(tc) {
       h += `</div>`;
     });
   });
+  h += `</div>
 
-  // ── Submission status + UNLOCK controls ──
-  h += `</div><div class="card"><p class="section-title">submissions today · ${fmtDate(activeDate)}</p>
-  <div class="info-box" style="margin-bottom:12px">Use <strong>Unlock</strong> to let a member re-edit their predictions. They will be auto-locked again after they re-submit.</div>`;
-
+  <div class="card"><p class="section-title">who has submitted today · ${fmtDate(activeDate)}</p>`;
   liveMembers.forEach(m => {
-    const sub      = hasSubmitted(m.name, activeDate);
-    const unlocked = isUnlocked(m.name, activeDate);
-    const av       = avC(m.name);
-    h += `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
-      <div class="avatar" style="background:${av.bg};color:${av.tx};width:30px;height:30px;font-size:11px;flex-shrink:0">${initials(m.name)}</div>
+    const sub = hasSubmitted(m.name, activeDate);
+    const av = avC(m.name);
+    h += `<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
+      <div class="avatar" style="background:${av.bg};color:${av.tx};width:28px;height:28px;font-size:11px">${initials(m.name)}</div>
       <span style="flex:1;font-size:13px;font-weight:500">${m.name}</span>
-      <span class="badge ${sub ? (unlocked ? 'b-unlocked' : 'b-submitted') : 'b-closed'}">
-        ${sub ? (unlocked ? '🔓 unlocked' : '✓ submitted') : '⏳ pending'}
-      </span>
-      ${sub
-        ? `<button class="${unlocked ? 'btn-lock' : 'btn-unlock'}" onclick="toggleUnlock('${m.name}','${activeDate}',${unlocked})">
-             ${unlocked ? 'Lock' : 'Unlock'}
-           </button>`
-        : ''}
+      <span class="badge ${sub?'b-submitted':'b-closed'}">${sub ? '✓ submitted' : '⏳ pending'}</span>
     </div>`;
   });
+  h += `</div>
 
-  h += `</div><div class="card"><p class="section-title">manage members & PINs</p>
-  <div class="warn-box" style="margin-bottom:10px">Send each PIN privately via WhatsApp DM. Use the "Copy msg" button.</div>
+  <div class="card"><p class="section-title">manage members & PINs</p>
+  <div class="warn-box" style="margin-bottom:10px">Send each PIN via WhatsApp DM individually. Use the "Copy msg" button.</div>
   <table class="member-table">
     <tr><th>#</th><th>Name</th><th>PIN</th><th></th></tr>
     ${liveMembers.map((m,i) => `<tr>
@@ -765,41 +846,54 @@ function renderAdmin(tc) {
   tc.innerHTML = h;
 }
 
-// ── ADMIN ACTIONS ─────────────────────────────────────────────────
 function saveRes(id) {
   const h = document.getElementById('rh'+id)?.value;
   const a = document.getElementById('ra'+id)?.value;
-  if (h===''||a===''||h===undefined) return;
-  db.ref(`results/${id}`).set({h:+h, a:+a}).catch(e => alert('Error: '+e.message));
+  if (h==='' || a==='' || h===undefined) return;
+  db.ref(`results/${id}`).set({h:+h, a:+a})
+    .catch(e => alert('Error: ' + e.message));
 }
 
 function clearRes(id) {
-  db.ref(`results/${id}`).remove().catch(e => alert('Error: '+e.message));
-}
-
-function toggleUnlock(name, date, currentlyUnlocked) {
-  const key = dateKey(date);
-  if (currentlyUnlocked) {
-    db.ref(`unlocked/${name}/${key}`).remove().catch(e => alert('Error: '+e.message));
-  } else {
-    db.ref(`unlocked/${name}/${key}`).set(true).catch(e => alert('Error: '+e.message));
-  }
+  db.ref(`results/${id}`).remove()
+    .catch(e => alert('Error: ' + e.message));
 }
 
 function updateMember(i, field, val) {
   const updated = [...liveMembers];
   updated[i] = {...updated[i], [field]: val.trim()};
-  db.ref('members').set(updated).catch(e => alert('Error: '+e.message));
+  db.ref('members').set(updated)
+    .catch(e => alert('Error: ' + e.message));
+}
+  function toggleUnlock(name, date, currentlyUnlocked) {
+  const key = date.replace(/-/g,'_');
+
+  if (currentlyUnlocked) {
+
+    // LOCK AGAIN
+    db.ref(`unlocked/${name}/${key}`)
+      .remove()
+      .catch(e => alert('Error: ' + e.message));
+
+  } else {
+
+    // UNLOCK USER
+    db.ref(`unlocked/${name}/${key}`)
+      .set(true)
+      .catch(e => alert('Error: ' + e.message));
+  }
 }
 
 function copyMsg(name, pin) {
-  const msg = `Hi ${name}! 🏆\n\nYou're invited to our WC 2026 Office Prediction Contest!\n\n🔗 App: https://ll-wc-prediction.vercel.app\n👤 Name: ${name}\n🔑 PIN: ${pin}\n\nPredict tomorrow's match scores every evening before 10 PM IST.\nMost points by July 19 wins the prize!\n\nGood luck! ⚽🇮🇳`;
+  const msg = `Hi ${name}! 🏆\n\nYou're invited to our WC 2026 Office Prediction Contest!\n\n🔗 App link: [PASTE YOUR VERCEL URL HERE]\n👤 Your name: ${name}\n🔑 Your PIN: ${pin}\n\nEvery evening predict the next day's match scores before 10 PM IST.\nMost points by July 19 wins the prize!\n\nGood luck! ⚽🇮🇳`;
   navigator.clipboard?.writeText(msg)
-    .then(() => alert('✅ Copied! Paste in WhatsApp to ' + name))
+    .then(() => alert('✅ Message copied! Paste in WhatsApp DM to ' + name))
     .catch(() => alert('PIN for ' + name + ': ' + pin));
 }
 
-// ── BOOT ──────────────────────────────────────────────────────────
+// ════════════════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════════════════
 initFirebase();
 </script>
 </body>
