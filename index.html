@@ -307,7 +307,12 @@ function initFirebase() {
 
 function tryRender() {
   if (!liveLoaded) return;
-  render();
+  // If shell already exists, just refresh tab content (don't reset the whole page)
+  if (session && document.getElementById('tc')) {
+    renderTabContent();
+  } else {
+    render();
+  }
 }
 
 // ── SCORING ───────────────────────────────────────────────────────
@@ -365,6 +370,7 @@ function render() {
 
 function setTab(t) {
   tab = t;
+  // update active tab highlight
   document.querySelectorAll('.tab').forEach(el => {
     el.classList.toggle('active', el.dataset.tab === t);
   });
@@ -377,15 +383,15 @@ function renderApp(root) {
     ? [['admin','⚙️ Admin'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']]
     : [['predict','⚽ Predict'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']];
 
-  if (!document.getElementById('tc')) {
-    root.innerHTML = `
-      <div class="tabs">${tabs.map(([id,lbl])=>`<button class="tab ${tab===id?'active':''}" data-tab="${id}" onclick="setTab('${id}')">${lbl}</button>`).join('')}</div>
-      <div id="tc"></div>
-      <div style="text-align:center;margin-top:8px">
-        <span style="font-size:12px;color:#888">${isAdmin ? 'Admin session' : 'Signed in as <strong>'+session.name+'</strong>'}</span>
-        <button class="btn-sm" onclick="doLogout()" style="margin-left:8px;font-size:11px;padding:3px 9px">Sign out</button>
-      </div>`;
-  }
+  // Always rebuild the shell so tabs stay in sync with session/tab state
+  root.innerHTML = `
+    <div class="tabs">${tabs.map(([id,lbl])=>`<button class="tab ${tab===id?'active':''}" data-tab="${id}" onclick="setTab('${id}')">${lbl}</button>`).join('')}</div>
+    <div id="tc"></div>
+    <div style="text-align:center;margin-top:8px">
+      <span style="font-size:12px;color:#888">${isAdmin ? 'Admin session' : 'Signed in as <strong>'+session.name+'</strong>'}</span>
+      <button class="btn-sm" onclick="doLogout()" style="margin-left:8px;font-size:11px;padding:3px 9px">Sign out</button>
+    </div>`;
+
   renderTabContent();
 }
 
