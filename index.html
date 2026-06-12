@@ -4,16 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>World Cup 2026 Predictor - Lead and Leap</title>
-
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f7; color: #111; min-height: 100vh; }
 .app { max-width: 820px; margin: 0 auto; padding: 1rem; }
 .header { text-align: center; padding: 1.4rem 1rem 0.5rem; margin-bottom: 1.2rem; }
-.header h1 { font-size: 22px; font-weight: 600; margin-bottom: 3px; letter-spacing: -0.3px; }
+.header h1 { font-size: 22px; font-weight: 600; margin-bottom: 3px; }
 .header p { font-size: 13px; color: #666; }
 .tabs { display: flex; gap: 3px; background: #e5e5ea; padding: 4px; border-radius: 12px; margin-bottom: 1.25rem; overflow-x: auto; }
 .tab { flex: 1; min-width: 56px; padding: 7px 4px; font-size: 12px; font-weight: 500; background: transparent; border: none; cursor: pointer; border-radius: 8px; color: #666; transition: all 0.15s; white-space: nowrap; }
@@ -34,38 +32,38 @@ select.inp { cursor: pointer; }
 .btn-primary:hover { opacity: 0.88; }
 .btn-sm { padding: 5px 11px; font-size: 12px; font-weight: 500; background: transparent; color: #111; border: 1px solid rgba(0,0,0,0.18); border-radius: 7px; cursor: pointer; }
 .btn-sm:hover { background: #f0f0f0; }
-.btn-submit { padding: 11px 28px; font-size: 14px; font-weight: 600; background: #1a7f37; color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: opacity 0.15s; }
+.btn-submit { padding: 11px 28px; font-size: 14px; font-weight: 600; background: #1a7f37; color: #fff; border: none; border-radius: 10px; cursor: pointer; }
 .btn-submit:hover { opacity: 0.88; }
 .btn-unlock { padding: 5px 12px; font-size: 12px; font-weight: 600; background: #e65100; color: #fff; border: none; border-radius: 7px; cursor: pointer; }
 .btn-lock { padding: 5px 12px; font-size: 12px; font-weight: 600; background: #555; color: #fff; border: none; border-radius: 7px; cursor: pointer; }
+.btn-save { padding: 6px 12px; font-size: 12px; font-weight: 600; background: #185fa5; color: #fff; border: none; border-radius: 7px; cursor: pointer; }
 .error-msg { font-size: 13px; color: #a32d2d; background: #fcebeb; padding: 9px 12px; border-radius: 8px; margin-bottom: 10px; }
 .info-box { background: #e6f1fb; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: #0c447c; margin-bottom: 1rem; line-height: 1.6; }
 .warn-box { background: #fff8e1; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: #7a5100; margin-bottom: 1rem; line-height: 1.6; border: 1px solid #ffe082; }
 .success-box { background: #e8f5e9; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: #1a5c2a; margin-bottom: 1rem; line-height: 1.6; border: 1px solid #a5d6a7; }
 .danger-box { background: #fcebeb; border-radius: 10px; padding: 10px 13px; font-size: 13px; color: #a32d2d; margin-bottom: 1rem; line-height: 1.6; }
-.fixture-card { border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; background: #fff; transition: border-color 0.15s; }
-.fixture-card:focus-within { border-color: #185fa5; }
+.fixture-card { border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; background: #fff; }
 .fixture-card.locked { background: #fafafa; }
 .fix-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-.fix-group { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; }
+.fix-group { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; }
 .fix-time { font-size: 11px; color: #888; }
 .fix-body { display: flex; align-items: center; gap: 10px; }
 .fix-team { flex: 1; font-size: 14px; font-weight: 600; }
 .fix-team.right { text-align: right; }
 .score-box { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
 .sinp { width: 42px; height: 40px; text-align: center; font-size: 17px; font-weight: 600; border: 1px solid rgba(0,0,0,0.18); border-radius: 8px; background: #fff; color: #111; padding: 0; }
-.sinp:focus { outline: none; border-color: #185fa5; box-shadow: 0 0 0 2px rgba(24,95,165,0.1); }
+.sinp:focus { outline: none; border-color: #185fa5; }
 .vsep { font-size: 15px; color: #bbb; font-weight: 600; }
 .pred-locked { font-size: 17px; font-weight: 600; color: #185fa5; letter-spacing: 3px; }
 .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 100px; font-weight: 600; }
-.b-open { background: #e8f5e9; color: #1a5c2a; }
-.b-closed { background: #fcebeb; color: #a32d2d; }
-.b-submitted { background: #e6f1fb; color: #0c447c; }
-.b-unlocked { background: #fff3e0; color: #e65100; }
-.b-exact { background: #e8f5e9; color: #1a5c2a; }
+.b-open    { background: #e8f5e9; color: #1a5c2a; }
+.b-closed  { background: #fcebeb; color: #a32d2d; }
+.b-sub     { background: #e6f1fb; color: #0c447c; }
+.b-unlock  { background: #fff3e0; color: #e65100; }
+.b-exact   { background: #e8f5e9; color: #1a5c2a; }
 .b-correct { background: #e6f1fb; color: #0c447c; }
 .b-partial { background: #fff8e1; color: #7a5100; }
-.b-wrong { background: #fcebeb; color: #a32d2d; }
+.b-wrong   { background: #fcebeb; color: #a32d2d; }
 .lb-row { display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 10px; margin: 0 -8px; }
 .lb-row.me { background: #e6f1fb; }
 .lb-rank { font-size: 15px; width: 28px; text-align: center; flex-shrink: 0; }
@@ -83,29 +81,27 @@ select.inp { cursor: pointer; }
 .deadline-bar { display: flex; align-items: center; justify-content: space-between; background: #f5f5f7; border-radius: 10px; padding: 10px 14px; margin-bottom: 1rem; border: 1px solid rgba(0,0,0,0.06); }
 .dl-label { font-size: 11px; color: #888; }
 .dl-val { font-size: 14px; font-weight: 600; }
-.countdown { font-family: 'SF Mono', 'Fira Mono', monospace; font-size: 16px; font-weight: 700; color: #185fa5; }
+.countdown { font-family: monospace; font-size: 16px; font-weight: 700; color: #185fa5; }
 .countdown.urgent { color: #c0392b; animation: pulse 1s infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
-.admin-fix-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 13px; }
+.admin-fix-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
 .admin-fix-row:last-child { border-bottom: none; }
 .ateams { flex: 1; font-size: 13px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rinp { width: 40px; height: 34px; text-align: center; font-size: 14px; font-weight: 600; border: 1px solid rgba(0,0,0,0.18); border-radius: 7px; background: #fff; color: #111; padding: 0; }
 .rinp:focus { outline: none; border-color: #185fa5; }
-.btn-save { padding: 6px 12px; font-size: 12px; font-weight: 600; background: #185fa5; color: #fff; border: none; border-radius: 7px; cursor: pointer; }
-.btn-save:hover { opacity: 0.88; }
 .entered-tag { font-size: 12px; color: #1a5c2a; background: #e8f5e9; padding: 3px 9px; border-radius: 100px; font-weight: 600; }
-.member-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.member-table th { text-align: left; font-size: 11px; font-weight: 600; color: #888; padding: 6px 8px; border-bottom: 1px solid rgba(0,0,0,0.08); }
-.member-table td { padding: 8px 8px; border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: middle; }
-.member-table tr:last-child td { border-bottom: none; }
-.edit-inp { padding: 5px 8px; font-size: 12px; border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; background: #fff; color: #111; }
+.edit-inp { padding: 6px 8px; font-size: 13px; border: 1px solid rgba(0,0,0,0.15); border-radius: 6px; background: #fff; color: #111; }
 .edit-inp:focus { outline: none; border-color: #185fa5; }
-.copy-btn { font-size: 11px; padding: 3px 9px; border-radius: 5px; background: #f0f0f0; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; color: #555; font-weight: 500; }
+.copy-btn { font-size: 11px; padding: 4px 10px; border-radius: 5px; background: #f0f0f0; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; color: #555; font-weight: 500; }
 .copy-btn:hover { background: #e0e0e0; }
+.member-row { display: flex; align-items: center; gap: 6px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+.member-row:last-child { border-bottom: none; }
 .loading { display: flex; align-items: center; justify-content: center; padding: 3rem; flex-direction: column; gap: 12px; }
 .spinner { width: 32px; height: 32px; border: 3px solid #e0e0e0; border-top-color: #185fa5; border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .empty-state { text-align: center; padding: 2.5rem 1rem; color: #888; font-size: 14px; }
+.tab-page { display: none; }
+.tab-page.active { display: block; }
 </style>
 </head>
 <body>
@@ -113,9 +109,47 @@ select.inp { cursor: pointer; }
   <div class="header">
     <div style="font-size:34px;margin-bottom:6px">🏆</div>
     <h1>World Cup 2026 Predictor - Lead and Leap</h1>
-    <p>June 12 - July 19, 2026</p>
+    <p>June 12 – July 19, 2026</p>
   </div>
-  <div id="root"><div class="loading"><div class="spinner"></div><span style="font-size:14px;color:#888">Connecting...</span></div></div>
+
+  <!-- LOGIN -->
+  <div id="page-login">
+    <div class="login-wrap">
+      <div class="card">
+        <div style="text-align:center;margin-bottom:1.1rem">
+          <div style="font-size:28px;margin-bottom:5px">🔐</div>
+          <h2>Sign in to play</h2>
+          <p class="sub">Select your name and enter your 4-digit PIN</p>
+        </div>
+        <div id="lerr"></div>
+        <div class="field-label">Your name</div>
+        <select id="sel" class="inp"><option value="">Choose your name...</option></select>
+        <div class="field-label">PIN</div>
+        <div class="pin-row">
+          <input class="pin-d" maxlength="1" type="password" inputmode="numeric" id="p0">
+          <input class="pin-d" maxlength="1" type="password" inputmode="numeric" id="p1">
+          <input class="pin-d" maxlength="1" type="password" inputmode="numeric" id="p2">
+          <input class="pin-d" maxlength="1" type="password" inputmode="numeric" id="p3">
+        </div>
+        <button class="btn-primary" onclick="doLogin()">Enter ⚽</button>
+      </div>
+      <div class="info-box" style="margin-top:.8rem">Your PIN was shared by the admin (Irfan). Contact Irfan if you need yours.</div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="page-app" style="display:none">
+    <div class="tabs" id="tab-bar"></div>
+    <div class="tab-page" id="tab-predict"></div>
+    <div class="tab-page" id="tab-leaderboard"></div>
+    <div class="tab-page" id="tab-results"></div>
+    <div class="tab-page" id="tab-rules"></div>
+    <div class="tab-page" id="tab-admin"></div>
+    <div style="text-align:center;margin-top:8px">
+      <span style="font-size:12px;color:#888" id="session-label"></span>
+      <button class="btn-sm" onclick="doLogout()" style="margin-left:8px;font-size:11px;padding:3px 9px">Sign out</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -216,106 +250,116 @@ const DEFAULT_MEMBERS = [
 ];
 const ADMIN_PIN = '9999';
 
-// ── STATE ─────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
 let db;
-let session = JSON.parse(sessionStorage.getItem('wc_session') || 'null');
-let tab = 'predict';
-let countdownTimer = null;
+let session   = JSON.parse(sessionStorage.getItem('wc_session') || 'null');
+let activeTab = 'predict';
+let cdTimer   = null;
 
-let liveMembers  = DEFAULT_MEMBERS;
+let liveMembers     = DEFAULT_MEMBERS;
 let livePredictions = {};
 let liveSubmitted   = {};
 let liveResults     = {};
-let liveUnlocked    = {};  // { memberName: { date_key: true } }
-let liveLoaded = false;
+let liveUnlocked    = {};
+let liveLoaded      = false;
 
-// ── DATE / DEADLINE ───────────────────────────────────────────────
-function getActivePredictionDate() {
-  return '2026-06-12'; // ← TESTING OVERRIDE — remove this line on June 11 to go live
-  const now = new Date();
-  const ist = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);
-  const h = ist.getUTCHours() + ist.getUTCMinutes() / 60;
-  const pad = n => String(n).padStart(2,'0');
-  const fmt = d => `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
-  const tomorrow = new Date(ist.getTime() + 24*60*60*1000);
-  if (h >= 22) {
-    return fmt(new Date(ist.getTime() + 48*60*60*1000));
-  }
-  return fmt(tomorrow);
+// ══════════════════════════════════════════════
+// DATE LOGIC — THE CORE FIX
+//
+// The cycle each day:
+//   00:00 – 21:59 IST  → predict tomorrow's matches (window OPEN)
+//   22:00 – 23:59 IST  → deadline passed, predict day-after-tomorrow (next window OPEN)
+//
+// "Active prediction date" = the match date people are currently predicting
+// "Deadline passed"        = it is past 10 PM IST for that match date
+// ══════════════════════════════════════════════
+function istNow() {
+  // Returns a Date object adjusted to IST (UTC+5:30)
+  return new Date(new Date().getTime() + 5.5 * 60 * 60 * 1000);
 }
 
-function getDeadline(matchDate) {
-  const d = new Date(matchDate + 'T16:30:00Z');
-  d.setDate(d.getDate() - 1);
-  return d;
+function istDateStr(d) {
+  // Returns YYYY-MM-DD for a Date object treated as IST
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth()+1)}-${pad(d.getUTCDate())}`;
+}
+
+function addDays(d, n) {
+  return new Date(d.getTime() + n * 86400000);
+}
+
+function getActivePredictionDate() {
+  // ── LIVE MODE (no override) ──────────────────────────────────
+  // Before 10 PM IST → predicting TOMORROW's matches
+  // After  10 PM IST → predicting DAY-AFTER-TOMORROW's matches
+  //                    (tonight's window is closed, next opens now)
+  const ist  = istNow();
+  const hour = ist.getUTCHours() + ist.getUTCMinutes() / 60;
+  if (hour >= 22) {
+    // After 10 PM — show matches 2 days from now
+    return istDateStr(addDays(ist, 2));
+  } else {
+    // Before 10 PM — show tomorrow's matches
+    return istDateStr(addDays(ist, 1));
+  }
 }
 
 function deadlinePassed() {
-  return false; // ← TESTING OVERRIDE — remove this line on June 11 to go live
-  return new Date() > getDeadline(getActivePredictionDate());
+  // Deadline for the active prediction date = 10 PM IST of the PREVIOUS day
+  // i.e. once it's past 10 PM IST, the window for tomorrow is closed
+  const ist  = istNow();
+  const hour = ist.getUTCHours() + ist.getUTCMinutes() / 60;
+  return hour >= 22;
+}
+
+function deadlineTime(matchDate) {
+  // Returns a JS Date for 10 PM IST the day before matchDate
+  // 10 PM IST = 16:30 UTC
+  const d = new Date(matchDate + 'T16:30:00Z');
+  d.setDate(d.getDate() - 1);
+  return d;
 }
 
 function fmtDate(ds) {
   return new Date(ds + 'T12:00:00').toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long'});
 }
 
-function dateKey(date) {
-  return date.replace(/-/g, '_');
-}
+function dk(date) { return date.replace(/-/g, '_'); }
 
-// ── FIREBASE ──────────────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// FIREBASE
+// ══════════════════════════════════════════════
 function initFirebase() {
   try {
     firebase.initializeApp(FIREBASE_CONFIG);
     db = firebase.database();
-
+    // Only seed members if DB is completely empty
     db.ref('members').once('value', snap => {
       if (!snap.exists()) db.ref('members').set(DEFAULT_MEMBERS);
     });
-
-    db.ref('members').on('value', snap => {
-      if (snap.exists()) liveMembers = snap.val();
-      liveLoaded = true; tryRender();
-    });
-    db.ref('predictions').on('value', snap => {
-      livePredictions = snap.exists() ? snap.val() : {};
-      tryRender();
-    });
-    db.ref('submitted').on('value', snap => {
-      liveSubmitted = snap.exists() ? snap.val() : {};
-      tryRender();
-    });
-    db.ref('results').on('value', snap => {
-      liveResults = snap.exists() ? snap.val() : {};
-      tryRender();
-    });
-    db.ref('unlocked').on('value', snap => {
-      liveUnlocked = snap.exists() ? snap.val() : {};
-      tryRender();
-    });
-
+    db.ref('members').on('value',     snap => { liveMembers     = snap.exists() ? snap.val() : DEFAULT_MEMBERS; onData(); });
+    db.ref('predictions').on('value', snap => { livePredictions = snap.exists() ? snap.val() : {}; onData(); });
+    db.ref('submitted').on('value',   snap => { liveSubmitted   = snap.exists() ? snap.val() : {}; onData(); });
+    db.ref('results').on('value',     snap => { liveResults     = snap.exists() ? snap.val() : {}; onData(); });
+    db.ref('unlocked').on('value',    snap => { liveUnlocked    = snap.exists() ? snap.val() : {}; onData(); });
+    liveLoaded = true;
   } catch(e) {
-    console.error('Firebase error:', e);
-    document.getElementById('root').innerHTML = `
-      <div class="card" style="max-width:400px;margin:2rem auto;text-align:center">
-        <div style="font-size:28px;margin-bottom:10px">⚙️</div>
-        <h2 style="font-size:17px;margin-bottom:8px">Connection failed</h2>
-        <p style="font-size:13px;color:#666">Check Firebase config in index.html</p>
-      </div>`;
+    console.error(e);
+    document.getElementById('page-login').innerHTML = `<div class="card" style="max-width:380px;margin:2rem auto;text-align:center"><div style="font-size:28px;margin-bottom:10px">⚙️</div><h2 style="font-size:17px;margin-bottom:8px">Firebase connection failed</h2><p style="font-size:13px;color:#666">Check Firebase config</p></div>`;
   }
 }
 
-function tryRender() {
+function onData() {
   if (!liveLoaded) return;
-  // If shell already exists, just refresh tab content (don't reset the whole page)
-  if (session && document.getElementById('tc')) {
-    renderTabContent();
-  } else {
-    render();
-  }
+  if (!session) { buildLoginDropdown(); return; }
+  refreshTab();
 }
 
-// ── SCORING ───────────────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// SCORING
+// ══════════════════════════════════════════════
 function calcPts(p, r) {
   if (!p || !r) return null;
   const ph=+p.h, pa=+p.a, rh=+r.h, ra=+r.a;
@@ -329,113 +373,56 @@ function calcPts(p, r) {
 
 function memberStats(name) {
   let total=0, correct=0, exact=0, played=0;
-  allFixtures().forEach(f => {
-    const r = liveResults[f.id];
-    const p = (livePredictions[name]||{})[f.id];
-    if (r && p) {
+  FIXTURES.forEach(f => {
+    const r=liveResults[f.id], p=(livePredictions[name]||{})[f.id];
+    if (r && p && typeof r === 'object' && 'h' in r) {
       played++;
-      const pts = calcPts(p, r);
-      if (pts !== null) { total+=pts; if(pts>=3)correct++; if(pts===5)exact++; }
+      const pts=calcPts(p,r);
+      if (pts!==null){total+=pts;if(pts>=3)correct++;if(pts===5)exact++;}
     }
   });
-  return {total, correct, exact, played};
+  return {total,correct,exact,played};
 }
 
 function leaderboard() {
-  return liveMembers
+  return [...liveMembers]
     .map(m => ({...m, ...memberStats(m.name)}))
     .sort((a,b) => b.total-a.total || b.correct-a.correct || b.exact-a.exact);
 }
 
-function hasSubmitted(name, date) {
-  return !!(liveSubmitted[name] && liveSubmitted[name][dateKey(date)]);
-}
+function hasSubmitted(name, date) { return !!(liveSubmitted[name]?.[dk(date)]); }
+function isUnlocked(name, date)   { return !!(liveUnlocked[name]?.[dk(date)]); }
 
-function isUnlocked(name, date) {
-  return !!(liveUnlocked[name] && liveUnlocked[name][dateKey(date)]);
-}
-
-// ── AVATARS ───────────────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// AVATARS
+// ══════════════════════════════════════════════
 const AV_BG=['#e6f1fb','#e8f5e9','#fff8e1','#fce4ec','#f3e5f5','#e0f7fa','#fff3e0'];
 const AV_TX=['#0c447c','#1a5c2a','#7a5100','#880e4f','#4a148c','#006064','#e65100'];
-function avC(name){let h=0;for(let c of name)h=(h*31+c.charCodeAt(0))%7;return{bg:AV_BG[h],tx:AV_TX[h]};}
-function initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function avC(n){let h=0;for(let c of n)h=(h*31+c.charCodeAt(0))%7;return{bg:AV_BG[h],tx:AV_TX[h]};}
+function ini(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
 
-// ── RENDER SHELL ──────────────────────────────────────────────────
-function render() {
-  const root = document.getElementById('root');
-  if (!session) { renderLogin(root); return; }
-  renderApp(root);
+// ══════════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════════
+function buildLoginDropdown() {
+  const sel = document.getElementById('sel');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Choose your name...</option>' +
+    liveMembers.map(m=>`<option value="${m.name}">${m.name}</option>`).join('') +
+    '<option value="__admin__">⚙️ Admin</option>';
+  if (cur) sel.value = cur;
 }
 
-function setTab(t) {
-  tab = t;
-  // update active tab highlight
-  document.querySelectorAll('.tab').forEach(el => {
-    el.classList.toggle('active', el.dataset.tab === t);
-  });
-  renderTabContent();
-}
-
-function renderApp(root) {
-  const isAdmin = session.admin;
-  const tabs = isAdmin
-    ? [['admin','⚙️ Admin'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']]
-    : [['predict','⚽ Predict'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']];
-
-  // Always rebuild the shell so tabs stay in sync with session/tab state
-  root.innerHTML = `
-    <div class="tabs">${tabs.map(([id,lbl])=>`<button class="tab ${tab===id?'active':''}" data-tab="${id}" onclick="setTab('${id}')">${lbl}</button>`).join('')}</div>
-    <div id="tc"></div>
-    <div style="text-align:center;margin-top:8px">
-      <span style="font-size:12px;color:#888">${isAdmin ? 'Admin session' : 'Signed in as <strong>'+session.name+'</strong>'}</span>
-      <button class="btn-sm" onclick="doLogout()" style="margin-left:8px;font-size:11px;padding:3px 9px">Sign out</button>
-    </div>`;
-
-  renderTabContent();
-}
-
-function renderTabContent() {
-  const tc = document.getElementById('tc');
-  if (!tc) return;
-  if      (tab==='predict'     && !session.admin) renderPredict(tc);
-  else if (tab==='leaderboard')                   renderLeaderboard(tc);
-  else if (tab==='results')                       renderResults(tc);
-  else if (tab==='rules')                         renderRules(tc);
-  else if (tab==='admin'       && session.admin)  renderAdmin(tc);
-}
-
-// ── LOGIN ─────────────────────────────────────────────────────────
-function renderLogin(root) {
-  root.innerHTML = `
-  <div class="login-wrap">
-    <div class="card">
-      <div style="text-align:center;margin-bottom:1.1rem">
-        <div style="font-size:28px;margin-bottom:5px">🔐</div>
-        <h2>Sign in to play</h2>
-        <p class="sub">Select your name and enter your 4-digit PIN</p>
-      </div>
-      <div id="lerr"></div>
-      <div class="field-label">Your name</div>
-      <select id="sel" class="inp">
-        <option value="">Choose your name...</option>
-        ${liveMembers.map(m=>`<option value="${m.name}">${m.name}</option>`).join('')}
-        <option value="__admin__">⚙️ Admin</option>
-      </select>
-      <div class="field-label">PIN</div>
-      <div class="pin-row">
-        ${[0,1,2,3].map(i=>`<input class="pin-d" maxlength="1" type="password" inputmode="numeric" id="p${i}">`).join('')}
-      </div>
-      <button class="btn-primary" onclick="doLogin()">Enter ⚽</button>
-    </div>
-    <div class="info-box" style="margin-top:.8rem">
-      Your PIN was shared by the admin (Irfan). Each person has a unique 4-digit PIN. Contact Irfan if you need yours.
-    </div>
-  </div>`;
+function initLogin() {
+  buildLoginDropdown();
+  document.getElementById('page-login').style.display = 'block';
+  document.getElementById('page-app').style.display   = 'none';
   for (let i=0; i<4; i++) {
     const el = document.getElementById('p'+i);
-    el.addEventListener('input', () => { if(el.value && i<3) document.getElementById('p'+(i+1)).focus(); });
-    el.addEventListener('keydown', e => { if(e.key==='Backspace' && !el.value && i>0) document.getElementById('p'+(i-1)).focus(); });
+    el.value = '';
+    el.addEventListener('input',   () => { if(el.value && i<3) document.getElementById('p'+(i+1)).focus(); });
+    el.addEventListener('keydown', e  => { if(e.key==='Backspace' && !el.value && i>0) document.getElementById('p'+(i-1)).focus(); });
   }
 }
 
@@ -443,82 +430,158 @@ function doLogin() {
   const name = document.getElementById('sel').value;
   const pin  = [0,1,2,3].map(i => document.getElementById('p'+i).value).join('');
   const err  = document.getElementById('lerr');
+  err.innerHTML = '';
   if (!name) { err.innerHTML='<div class="error-msg">Please select your name.</div>'; return; }
   if (pin.length < 4) { err.innerHTML='<div class="error-msg">Enter your full 4-digit PIN.</div>'; return; }
   if (name === '__admin__') {
-    if (pin === ADMIN_PIN) {
-      session = {admin:true};
-      sessionStorage.setItem('wc_session', JSON.stringify(session));
-      tab = 'admin';
-      document.getElementById('root').innerHTML = '';
-      render(); return;
-    }
-    err.innerHTML='<div class="error-msg">Wrong admin PIN.</div>'; return;
+    if (pin !== ADMIN_PIN) { err.innerHTML='<div class="error-msg">Wrong admin PIN.</div>'; return; }
+    session = {admin:true};
+    sessionStorage.setItem('wc_session', JSON.stringify(session));
+    activeTab = 'admin';
+    initApp(); return;
   }
   const member = liveMembers.find(m => m.name === name);
   if (!member) { err.innerHTML='<div class="error-msg">Name not found.</div>'; return; }
   if (member.pin !== pin) { err.innerHTML='<div class="error-msg">Wrong PIN. Contact Irfan if you forgot it.</div>'; return; }
   session = {name, admin:false};
   sessionStorage.setItem('wc_session', JSON.stringify(session));
-  tab = 'predict';
-  document.getElementById('root').innerHTML = '';
-  render();
+  activeTab = 'predict';
+  initApp();
 }
 
 function doLogout() {
   session = null;
   sessionStorage.removeItem('wc_session');
-  document.getElementById('root').innerHTML = '';
-  render();
+  activeTab = 'predict';
+  if (cdTimer) { clearInterval(cdTimer); cdTimer = null; }
+  initLogin();
 }
 
-// ── PREDICT TAB ───────────────────────────────────────────────────
-function renderPredict(tc) {
+// ══════════════════════════════════════════════
+// APP SHELL — built once on login
+// ══════════════════════════════════════════════
+function initApp() {
+  const isAdmin = session.admin;
+  document.getElementById('page-login').style.display = 'none';
+  document.getElementById('page-app').style.display   = 'block';
+
+  const tabs = isAdmin
+    ? [['admin','⚙️ Admin'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']]
+    : [['predict','⚽ Predict'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']];
+
+  document.getElementById('tab-bar').innerHTML = tabs
+    .map(([id,lbl]) => `<button class="tab" id="tabBtn-${id}" onclick="switchTab('${id}')">${lbl}</button>`)
+    .join('');
+
+  document.getElementById('session-label').innerHTML =
+    isAdmin ? 'Admin session' : 'Signed in as <strong>' + session.name + '</strong>';
+
+  switchTab(activeTab);
+}
+
+function switchTab(t) {
+  activeTab = t;
+  document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
+  const btn = document.getElementById('tabBtn-'+t);
+  if (btn) btn.classList.add('active');
+  ['predict','leaderboard','results','rules','admin'].forEach(id => {
+    document.getElementById('tab-'+id).style.display = id === t ? 'block' : 'none';
+  });
+  renderTab(t);
+}
+
+function refreshTab() { if (session) renderTab(activeTab); }
+
+function renderTab(t) {
+  if      (t==='predict'     && !session.admin) renderPredict();
+  else if (t==='leaderboard')                   renderLeaderboard();
+  else if (t==='results')                       renderResults();
+  else if (t==='rules')                         renderRules();
+  else if (t==='admin' && session.admin)        renderAdmin();
+}
+
+// ══════════════════════════════════════════════
+// PREDICT TAB
+// ══════════════════════════════════════════════
+function renderPredict() {
+  const tc = document.getElementById('tab-predict');
   const me = session.name;
-  const {total, correct, exact} = memberStats(me);
-  const lb    = leaderboard();
-  const rank  = lb.findIndex(r => r.name === me) + 1;
-  const activeDate = getActivePredictionDate();
-  const fixtures   = allFixtures().filter(f => f.date === activeDate);
-  const passed     = deadlinePassed();
-  const submitted  = hasSubmitted(me, activeDate);
-  const unlocked   = isUnlocked(me, activeDate);
-  const myPreds    = livePredictions[me] || {};
+  const {total,correct,exact} = memberStats(me);
+  const lb   = leaderboard();
+  const rank = lb.findIndex(r => r.name === me) + 1;
+
+  const ad        = getActivePredictionDate();
+  const passed    = deadlinePassed();
+  const submitted = hasSubmitted(me, ad);
+  const unlocked  = isUnlocked(me, ad);
+  const fixs      = FIXTURES.filter(f => f.date === ad);
+  const myPreds   = livePredictions[me] || {};
 
   let h = `<div class="stats-grid">
     <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">points</div></div>
-    <div class="stat-card"><div class="stat-num">${rank ? '#'+rank : '-'}</div><div class="stat-label">rank</div></div>
+    <div class="stat-card"><div class="stat-num">${rank?'#'+rank:'-'}</div><div class="stat-label">rank</div></div>
     <div class="stat-card"><div class="stat-num">${correct}</div><div class="stat-label">correct</div></div>
     <div class="stat-card"><div class="stat-num">${exact}</div><div class="stat-label">exact scores</div></div>
   </div>`;
 
+  // Deadline bar — only show when window is open
   if (!passed && (!submitted || unlocked)) {
+    const dlTime = deadlineTime(ad);
     h += `<div class="deadline-bar">
-      <div><div class="dl-label">Predicting for</div><div class="dl-val">${fmtDate(activeDate)}</div></div>
+      <div><div class="dl-label">Predicting for</div><div class="dl-val">${fmtDate(ad)}</div></div>
       <div style="text-align:right"><div class="dl-label">Deadline tonight</div><div class="countdown" id="cdtimer">--:--:--</div></div>
     </div>`;
   }
 
-  if (!fixtures.length) {
-    h += `<div class="card"><div class="empty-state">No fixtures for ${fmtDate(activeDate)}<br>Check back later ⚽</div></div>`;
+  if (!fixs.length) {
+    h += `<div class="card"><div class="empty-state">No fixtures scheduled for ${fmtDate(ad)}.<br>Check back tomorrow ⚽</div></div>`;
+
+  } else if (passed && !unlocked) {
+    // After 10 PM and not unlocked by admin — show closed message + next window info
+    const nextDate = istDateStr(addDays(istNow(), 2));
+    const nextFixs = FIXTURES.filter(f => f.date === nextDate);
+    h += `<div class="danger-box">🔒 Predictions for <strong>${fmtDate(ad)}</strong> are now closed — deadline was 10 PM IST.<br><br>
+      ${nextFixs.length ? `⏳ Next prediction window opens now for <strong>${fmtDate(nextDate)}</strong> matches. Come back after midnight!` : 'No upcoming fixtures found yet.'}
+    </div>`;
+    // Also show what they submitted (if anything)
+    if (submitted) {
+      h += `<div class="card"><p class="section-title">your submitted predictions for ${fmtDate(ad)}</p>`;
+      fixs.forEach(f => {
+        const pred=myPreds[f.id], result=liveResults[f.id];
+        const pts=result&&pred?calcPts(pred,result):null;
+        const cls=pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':pts===0?'b-wrong':'';
+        h += `<div class="fixture-card locked">
+          <div class="fix-meta"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
+          <div class="fix-body">
+            <span class="fix-team">${f.home}</span>
+            <div class="score-box">
+              ${pred?`<span class="pred-locked">${pred.h} – ${pred.a}</span>`:'<span style="color:#bbb">—</span>'}
+              ${result?`<span style="font-size:12px;color:#888;margin-left:8px">Result: <strong>${result.h}–${result.a}</strong></span>`:''}
+              ${pts!==null?`<span class="badge ${cls}" style="margin-left:6px">+${pts}pt${pts!==1?'s':''}</span>`:''}
+            </div>
+            <span class="fix-team right">${f.away}</span>
+          </div>
+        </div>`;
+      });
+      h += `</div>`;
+    }
 
   } else if (submitted && !unlocked) {
-    // LOCKED STATE
-    h += `<div class="success-box">✅ Your predictions for <strong>${fmtDate(activeDate)}</strong> are locked in. Good luck!</div>`;
+    // Submitted and deadline not yet passed — locked view
+    h += `<div class="success-box">✅ Your predictions for <strong>${fmtDate(ad)}</strong> are locked in. Good luck!</div>`;
     h += `<div class="card"><p class="section-title">your locked predictions</p>`;
-    fixtures.forEach(f => {
-      const pred = myPreds[f.id];
-      const result = liveResults[f.id];
-      const pts = result && pred ? calcPts(pred, result) : null;
-      const ptsCls = pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':pts===0?'b-wrong':'';
+    fixs.forEach(f => {
+      const pred=myPreds[f.id], result=liveResults[f.id];
+      const pts=result&&pred?calcPts(pred,result):null;
+      const cls=pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':pts===0?'b-wrong':'';
       h += `<div class="fixture-card locked">
         <div class="fix-meta"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
         <div class="fix-body">
           <span class="fix-team">${f.home}</span>
           <div class="score-box">
-            ${pred ? `<span class="pred-locked">${pred.h} – ${pred.a}</span>` : '<span style="color:#bbb;font-size:13px">no pick</span>'}
-            ${result ? `<span style="font-size:12px;color:#888;margin-left:8px">Result: <strong>${result.h}–${result.a}</strong></span>` : ''}
-            ${pts !== null ? `<span class="badge ${ptsCls}" style="margin-left:6px">+${pts}pt${pts!==1?'s':''}</span>` : ''}
+            ${pred?`<span class="pred-locked">${pred.h} – ${pred.a}</span>`:'<span style="color:#bbb">—</span>'}
+            ${result?`<span style="font-size:12px;color:#888;margin-left:8px">Result: <strong>${result.h}–${result.a}</strong></span>`:''}
+            ${pts!==null?`<span class="badge ${cls}" style="margin-left:6px">+${pts}pt${pts!==1?'s':''}</span>`:''}
           </div>
           <span class="fix-team right">${f.away}</span>
         </div>
@@ -526,50 +589,53 @@ function renderPredict(tc) {
     });
     h += `</div>`;
 
-  } else if (passed && !unlocked) {
-    h += `<div class="danger-box">⏰ The 10 PM deadline has passed. Predictions for <strong>${fmtDate(activeDate)}</strong> are closed.</div>`;
-
   } else {
-    // OPEN FOR PREDICTION (new or re-edit after unlock)
-    if (unlocked) {
-      h += `<div class="warn-box">🔓 Admin has unlocked your predictions. Update your scores and submit again before the deadline.</div>`;
-    }
-    h += `<div class="card"><p class="section-title">predict ${fmtDate(activeDate)}</p>`;
-    fixtures.forEach(f => {
-      const pred = myPreds[f.id];
+    // Open prediction window
+    if (unlocked) h += `<div class="warn-box">🔓 Admin has unlocked your predictions. Update your scores and re-submit before 10 PM IST.</div>`;
+    h += `<div class="card"><p class="section-title">predict ${fmtDate(ad)}</p>`;
+    fixs.forEach(f => {
+      const pred=myPreds[f.id];
       h += `<div class="fixture-card">
         <div class="fix-meta"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
         <div class="fix-body">
           <span class="fix-team">${f.home}</span>
           <div class="score-box">
-            <input type="number" min="0" max="20" class="sinp" id="h${f.id}" value="${pred ? pred.h : ''}" placeholder="0">
+            <input type="number" min="0" max="20" class="sinp" id="h${f.id}" value="${pred?pred.h:''}" placeholder="0">
             <span class="vsep">–</span>
-            <input type="number" min="0" max="20" class="sinp" id="a${f.id}" value="${pred ? pred.a : ''}" placeholder="0">
+            <input type="number" min="0" max="20" class="sinp" id="a${f.id}" value="${pred?pred.a:''}" placeholder="0">
           </div>
           <span class="fix-team right">${f.away}</span>
         </div>
       </div>`;
     });
     h += `<div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-      <span style="font-size:12px;color:#888">Fill all scores, then submit. You <strong>cannot edit</strong> after submitting.</span>
+      <span style="font-size:12px;color:#888">Fill all scores then submit. <strong>Cannot edit after submitting.</strong></span>
       <button class="btn-submit" onclick="doSubmit()">Submit Predictions ✓</button>
     </div></div>`;
   }
 
   tc.innerHTML = h;
 
-  if (countdownTimer) clearInterval(countdownTimer);
+  // Start countdown timer only when window is open
+  if (cdTimer) { clearInterval(cdTimer); cdTimer = null; }
   if (!passed && (!submitted || unlocked)) {
-    updateCountdown();
-    countdownTimer = setInterval(updateCountdown, 1000);
+    updateCd(ad);
+    cdTimer = setInterval(() => updateCd(ad), 1000);
   }
 }
 
-function updateCountdown() {
+function updateCd(ad) {
   const el = document.getElementById('cdtimer');
-  if (!el) { clearInterval(countdownTimer); return; }
-  const diff = getDeadline(getActivePredictionDate()) - new Date();
-  if (diff <= 0) { el.textContent='CLOSED'; el.classList.add('urgent'); clearInterval(countdownTimer); renderTabContent(); return; }
+  if (!el) { clearInterval(cdTimer); return; }
+  const diff = deadlineTime(ad) - new Date();
+  if (diff <= 0) {
+    el.textContent = 'CLOSED';
+    el.classList.add('urgent');
+    clearInterval(cdTimer);
+    cdTimer = null;
+    renderPredict(); // refresh to show closed state
+    return;
+  }
   const hh=Math.floor(diff/3600000), mm=Math.floor((diff%3600000)/60000), ss=Math.floor((diff%60000)/1000);
   el.textContent = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
   if (diff < 3600000) el.classList.add('urgent');
@@ -577,49 +643,39 @@ function updateCountdown() {
 
 function doSubmit() {
   const me = session.name;
-  const activeDate = getActivePredictionDate();
-  const fixtures = FIXTURES.filter(f => f.date === activeDate);
-  if (deadlinePassed()) { alert('Deadline has passed!'); return; }
-
-  const preds = {};
-  const missing = [];
-  fixtures.forEach(f => {
-    const hv = document.getElementById('h'+f.id)?.value;
-    const av = document.getElementById('a'+f.id)?.value;
-    if (hv==='' || av==='' || hv===undefined || av===undefined) {
-      missing.push(`${f.home} vs ${f.away}`);
-    } else {
-      preds[f.id] = {h:+hv, a:+av};
-    }
+  const ad = getActivePredictionDate();
+  const fixs = FIXTURES.filter(f => f.date === ad);
+  if (deadlinePassed()) { alert('The 10 PM deadline has passed. Predictions are closed.'); return; }
+  const preds={}, missing=[];
+  fixs.forEach(f => {
+    const hv=document.getElementById('h'+f.id)?.value;
+    const av=document.getElementById('a'+f.id)?.value;
+    if (hv===''||av===''||hv===undefined) missing.push(`${f.home} vs ${f.away}`);
+    else preds[f.id]={h:+hv,a:+av};
   });
-
-  if (missing.length) { alert('Please fill scores for ALL matches:\n\n' + missing.join('\n')); return; }
-  if (!confirm(`Submit predictions for ${fmtDate(activeDate)}?\n\nYou cannot change them after submitting.`)) return;
-
-  const updates = {};
-  Object.entries(preds).forEach(([id, score]) => {
-    updates[`predictions/${me}/${id}`] = score;
-  });
-  updates[`submitted/${me}/${dateKey(activeDate)}`] = true;
-  updates[`unlocked/${me}/${dateKey(activeDate)}`]  = null; // re-lock after submit
-
-  db.ref().update(updates)
-    .then(() => renderTabContent())
-    .catch(e => alert('Error saving: ' + e.message));
+  if (missing.length) { alert('Fill ALL match scores before submitting:\n\n'+missing.join('\n')); return; }
+  if (!confirm(`Submit predictions for ${fmtDate(ad)}?\n\nYou cannot change them after submitting.`)) return;
+  const updates={};
+  Object.entries(preds).forEach(([id,score]) => { updates[`predictions/${me}/${id}`]=score; });
+  updates[`submitted/${me}/${dk(ad)}`]=true;
+  updates[`unlocked/${me}/${dk(ad)}`]=null;
+  db.ref().update(updates).then(()=>renderPredict()).catch(e=>alert('Error: '+e.message));
 }
 
-// ── LEADERBOARD ───────────────────────────────────────────────────
-function renderLeaderboard(tc) {
-  const lb = leaderboard();
-  const me = session.name;
-  const medals = ['🥇','🥈','🥉'];
-  let h = `<div class="card"><p class="section-title">live standings · ${lb.length} players</p>`;
-  lb.forEach((row, i) => {
-    const av = avC(row.name);
-    const isMe = row.name === me;
-    h += `<div class="lb-row ${isMe?'me':''}">
-      <div class="lb-rank">${medals[i] || '#'+(i+1)}</div>
-      <div class="avatar" style="background:${av.bg};color:${av.tx}">${initials(row.name)}</div>
+// ══════════════════════════════════════════════
+// LEADERBOARD
+// ══════════════════════════════════════════════
+function renderLeaderboard() {
+  const tc=document.getElementById('tab-leaderboard');
+  const lb=leaderboard();
+  const me=session.admin?null:session.name;
+  const medals=['🥇','🥈','🥉'];
+  let h=`<div class="card"><p class="section-title">live standings · ${lb.length} players</p>`;
+  lb.forEach((row,i) => {
+    const av=avC(row.name), isMe=row.name===me;
+    h+=`<div class="lb-row ${isMe?'me':''}">
+      <div class="lb-rank">${medals[i]||'#'+(i+1)}</div>
+      <div class="avatar" style="background:${av.bg};color:${av.tx}">${ini(row.name)}</div>
       <div class="lb-info">
         <div class="lb-name">${row.name}${isMe?'<span class="you-pill">you</span>':''}</div>
         <div class="lb-sub">${row.correct} correct · ${row.exact} exact · ${row.played} played</div>
@@ -627,181 +683,121 @@ function renderLeaderboard(tc) {
       <div><div class="lb-pts">${row.total}</div><div class="lb-ptslabel">pts</div></div>
     </div>`;
   });
-  h += `</div><div class="info-box">🔴 Live — updates instantly as results are entered. Predictions hidden until 10 PM deadline each night.</div>`;
-  tc.innerHTML = h;
+  h+=`</div><div class="info-box">🔴 Live — updates instantly when results are entered by admin.</div>`;
+  tc.innerHTML=h;
 }
 
-// ── RESULTS ───────────────────────────────────────────────────────
-function renderResults(tc) {
-  const done = allFixtures().filter(f => liveResults[f.id] && typeof liveResults[f.id] === 'object' && 'h' in liveResults[f.id]).reverse();
-  const me = session.name;
-  let h = `<div class="card"><p class="section-title">completed matches</p>`;
-  if (!done.length) {
-    h += `<div class="empty-state">No results yet. Check back after the first match! ⚽</div></div>`;
-    tc.innerHTML = h; return;
-  }
+// ══════════════════════════════════════════════
+// RESULTS
+// ══════════════════════════════════════════════
+function renderResults() {
+  const tc=document.getElementById('tab-results');
+  const me=session.admin?null:session.name;
+  const isAdmin=session.admin;
+  const done=FIXTURES.filter(f => {
+    const r=liveResults[f.id];
+    return r && typeof r==='object' && 'h' in r;
+  }).reverse();
+  let h=`<div class="card"><p class="section-title">completed matches</p>`;
+  if (!done.length) { h+=`<div class="empty-state">No results yet. Check back after the first match! ⚽</div></div>`; tc.innerHTML=h; return; }
   done.forEach(f => {
-    const r = liveResults[f.id];
-    h += `<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(0,0,0,0.06)">
+    const r=liveResults[f.id];
+    h+=`<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(0,0,0,0.06)">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap">
         <span style="font-size:14px;font-weight:600">${f.home} <span style="color:#185fa5">${r.h}–${r.a}</span> ${f.away}</span>
         <span style="font-size:11px;color:#888">Group ${f.group} · ${fmtDate(f.date)}</span>
       </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px">`;
     liveMembers.forEach(m => {
-      const pred = (livePredictions[m.name]||{})[f.id];
+      const pred=(livePredictions[m.name]||{})[f.id];
       if (!pred) return;
-      const pts = calcPts(pred, r);
-      const cls = pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':'b-wrong';
-      const isMe = m.name === me;
-      h += `<span style="font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;background:#f5f5f7;${isMe?'border:1.5px solid #185fa5;':''}">${m.name}: <strong>${pred.h}–${pred.a}</strong> <span class="badge ${cls}" style="font-size:10px;padding:1px 5px">+${pts}p</span></span>`;
+      const pts=calcPts(pred,r);
+      const cls=pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':'b-wrong';
+      const isMe=m.name===me;
+      h+=`<span style="font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;background:#f5f5f7;${isMe?'border:1.5px solid #185fa5;':''}">${m.name}: <strong>${pred.h}–${pred.a}</strong> <span class="badge ${cls}" style="font-size:10px;padding:1px 5px">+${pts}p</span></span>`;
     });
-    h += `</div></div>`;
+    h+=`</div></div>`;
   });
-  h += `</div>`;
-  tc.innerHTML = h;
+  h+=`</div>`;
+  tc.innerHTML=h;
 }
 
-// ── RULES ─────────────────────────────────────────────────────────
-
-const KNOCKOUT_FIXTURES = [
-  {id:'r32-1', stage:'r32', group:'R32', label:'Round of 32', date:'2026-06-28', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'r32-2', stage:'r32', group:'R32', label:'Round of 32', date:'2026-06-29', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'r32-3', stage:'r32', group:'R32', label:'Round of 32', date:'2026-06-29', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'r32-4', stage:'r32', group:'R32', label:'Round of 32', date:'2026-06-30', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'r32-5', stage:'r32', group:'R32', label:'Round of 32', date:'2026-06-30', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'r32-6', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-01', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'r32-7', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-01', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'r32-8', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-02', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'r32-9', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-02', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'r32-10', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-03', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'r32-11', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-03', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'r32-12', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-04', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'r32-13', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-04', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'r32-14', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-05', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'r32-15', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-05', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'r32-16', stage:'r32', group:'R32', label:'Round of 32', date:'2026-07-06', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'r16-1', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-04', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'r16-2', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-05', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'r16-3', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-05', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'r16-4', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-06', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'r16-5', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-06', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'r16-6', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-07', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'r16-7', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-07', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'r16-8', stage:'r16', group:'R16', label:'Round of 16', date:'2026-07-08', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'qf-1', stage:'qf', group:'QF', label:'Quarter-final', date:'2026-07-09', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'qf-2', stage:'qf', group:'QF', label:'Quarter-final', date:'2026-07-10', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'qf-3', stage:'qf', group:'QF', label:'Quarter-final', date:'2026-07-10', ist:'22:30', home:'TBD', away:'TBD'},
-  {id:'qf-4', stage:'qf', group:'QF', label:'Quarter-final', date:'2026-07-11', ist:'01:30', home:'TBD', away:'TBD'},
-  {id:'sf-1', stage:'semi', group:'SF', label:'Semi-final', date:'2026-07-15', ist:'00:30', home:'TBD', away:'TBD'},
-  {id:'sf-2', stage:'semi', group:'SF', label:'Semi-final', date:'2026-07-16', ist:'00:30', home:'TBD', away:'TBD'},
-  {id:'third', stage:'third', group:'3RD', label:'Third-place match', date:'2026-07-18', ist:'20:30', home:'TBD', away:'TBD'},
-  {id:'final', stage:'final', group:'FIN', label:'Final', date:'2026-07-19', ist:'00:30', home:'TBD', away:'TBD'}
-];
-
-function allFixtures() {
-  return [...FIXTURES, ...getManualKnockoutFixtures()];
-}
-
-function getManualKnockoutAssignments() {
-  return liveResults.__knockoutTeams || {};
-}
-
-function getManualKnockoutFixtures() {
-  const assign = getManualKnockoutAssignments();
-  return KNOCKOUT_FIXTURES.map(f => ({...f, home: assign[f.id]?.home || f.home, away: assign[f.id]?.away || f.away}));
-}
-
-function getSelectableTeams() {
-  const set = new Set();
-  FIXTURES.forEach(f => { set.add(f.home); set.add(f.away); });
-  return Array.from(set).sort((a,b)=>a.localeCompare(b));
-}
-
-function stageTitle(stage) {
-  return ({r32:'Round of 32', r16:'Round of 16', qf:'Quarter-final', semi:'Semi-final', third:'Third-place match', final:'Final'})[stage] || 'Knockout';
-}
-
-function renderKnockout(tc) {
-  const byStage = {};
-  getManualKnockoutFixtures().forEach(f => { if(!byStage[f.stage]) byStage[f.stage]=[]; byStage[f.stage].push(f); });
-  let h = `<div class="card"><p class="section-title">official knockout fixtures</p><div class="info-box">Knockout fixture dates are loaded. Teams remain TBD until you assign them in Admin.</div></div>`;
-  ['r32','r16','qf','semi','third','final'].forEach(stage => {
-    const rows = byStage[stage] || [];
-    if (!rows.length) return;
-    h += `<div class="card"><p class="section-title">${stageTitle(stage)}</p>`;
-    rows.forEach(f => {
-      const r = liveResults[f.id];
-      h += `<div class="fixture-card ${r ? 'locked' : ''}"><div class="fix-meta"><span class="fix-group">${f.label}</span><span class="fix-time">${fmtDate(f.date)} | ${f.ist} IST</span></div><div class="fix-body"><span class="fix-team">${f.home}</span><div class="score-box">${r ? `<span class="pred-locked">${r.h} - ${r.a}</span>` : `<span style="color:#bbb;font-size:13px">vs</span>`}</div><span class="fix-team right">${f.away}</span></div></div>`;
-    });
-    h += `</div>`;
-  });
-  tc.innerHTML = h;
-}
-
-function saveKnockoutTeams(id) {
-  const home = document.getElementById('kh_'+id)?.value || 'TBD';
-  const away = document.getElementById('ka_'+id)?.value || 'TBD';
-  db.ref(`results/__knockoutTeams/${id}`).set({home, away}).catch(e => alert('Error: ' + e.message));
-}
-
-function renderRules(tc) {
-  tc.innerHTML = `
+// ══════════════════════════════════════════════
+// RULES
+// ══════════════════════════════════════════════
+function renderRules() {
+  document.getElementById('tab-rules').innerHTML=`
   <div class="card"><p class="section-title">scoring system</p>
     ${[['+5','Exact scoreline','Predicted 2–1 and it ended exactly 2–1'],['+3','Correct result','Right outcome (win/draw), any score'],['+1','Correct goal diff.','Same margin, different score (e.g. 2–0 vs 3–1)'],['0','Wrong result','Predicted wrong outcome']]
-    .map(([p,t,s]) => `<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+    .map(([p,t,s])=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
       <span style="font-size:13px;font-weight:600;padding:3px 10px;border-radius:100px;background:#e6f1fb;color:#0c447c;min-width:40px;text-align:center;flex-shrink:0">${p}</span>
       <div><div style="font-size:14px;font-weight:500">${t}</div><div style="font-size:12px;color:#888;margin-top:2px">${s}</div></div>
     </div>`).join('')}
   </div>
+  <div class="card"><p class="section-title">daily schedule</p>
+    ${[['🌅','Anytime before 10 PM IST','Predict tomorrow\'s matches. Window is open all day.'],['🔒','10 PM IST sharp','Predictions lock. No entries accepted after this.'],['⚽','Match day','Matches are played. Admin enters results after each match.'],['📊','Instantly','Leaderboard updates for everyone as results come in.'],['🌙','After 10 PM IST','Next day\'s prediction window opens automatically.']]
+    .map(([ic,t,s])=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+      <span style="font-size:16px;padding:4px 8px;border-radius:8px;background:#f5f5f7;flex-shrink:0">${ic}</span>
+      <div><div style="font-size:14px;font-weight:600">${t}</div><div style="font-size:12px;color:#888;margin-top:2px">${s}</div></div>
+    </div>`).join('')}
+  </div>
   <div class="card"><p class="section-title">contest rules</p>
-    ${[['⏰','10 PM IST deadline nightly','Each evening, predict the next day\'s matches. Predictions close strictly at 10 PM IST.'],['🔒','No editing after submit','Once you tap Submit, your predictions are final. Admin can unlock if needed.'],['👁','Picks hidden until deadline','Others cannot see your predictions until the 10 PM deadline passes.'],['🏆','Most points wins','After the July 19 final, highest total wins. Tiebreaker: exact scores → correct results.'],['📲','One account, one PIN','Your PIN is yours alone. Don\'t share it.']]
-    .map(([ic,t,s]) => `<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
+    ${[['🏆','Most points wins','After the July 19 final. Tiebreaker: exact scores → correct results.'],['🔒','No editing after submit','Once you submit, predictions are final. Admin can unlock if needed.'],['👁','Picks hidden until deadline','Others cannot see your predictions until 10 PM passes.'],['📲','One account, one PIN','Your PIN is yours alone. Don\'t share it.']]
+    .map(([ic,t,s])=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)">
       <span style="font-size:16px;padding:4px 8px;border-radius:8px;background:#f5f5f7;flex-shrink:0">${ic}</span>
       <div><div style="font-size:14px;font-weight:600">${t}</div><div style="font-size:12px;color:#888;margin-top:2px">${s}</div></div>
     </div>`).join('')}
   </div>`;
 }
 
-// ── ADMIN TAB ─────────────────────────────────────────────────────
-function renderAdmin(tc) {
-  const now = new Date();
-  const ist = new Date(now.getTime() + 5.5*60*60*1000);
-  const pad = n => String(n).padStart(2,'0');
-  const nextDay = new Date(ist.getTime() + 24*60*60*1000);
-  const nextDayIST = `${nextDay.getUTCFullYear()}-${pad(nextDay.getUTCMonth()+1)}-${pad(nextDay.getUTCDate())}`;
+// ══════════════════════════════════════════════
+// ADMIN TAB
+// ══════════════════════════════════════════════
+function renderAdmin() {
+  const tc = document.getElementById('tab-admin');
+  const ad = getActivePredictionDate();
 
-  const activeDate = getActivePredictionDate();
-  const adminFixtures = allFixtures().filter(f => f.date <= nextDayIST || f.date === activeDate).slice(-60);
+  // Show fixtures for active prediction date + any date that already has results
+  const datesWithResults = [...new Set(
+    FIXTURES.filter(f => {
+      const r=liveResults[f.id];
+      return r && typeof r==='object' && 'h' in r;
+    }).map(f => f.date)
+  )];
+  const adminDates = [...new Set([ad, ...datesWithResults])].sort().reverse();
   const byDate = {};
-  adminFixtures.forEach(f => { if(!byDate[f.date]) byDate[f.date]=[]; byDate[f.date].push(f); });
+  FIXTURES.forEach(f => {
+    if (adminDates.includes(f.date)) {
+      if (!byDate[f.date]) byDate[f.date] = [];
+      byDate[f.date].push(f);
+    }
+  });
 
-  const submissionCount = liveMembers.filter(m => hasSubmitted(m.name, activeDate)).length;
+  const subCount = liveMembers.filter(m => hasSubmitted(m.name, ad)).length;
 
-  let h = `
-  <div class="warn-box">🔐 Admin panel · PIN 9999 · Do not share this screen.</div>
+  let h = `<div class="warn-box">🔐 Admin panel · PIN 9999 · Do not share this screen.</div>
   <div class="stats-grid" style="margin-bottom:1rem">
     <div class="stat-card"><div class="stat-num">${liveMembers.length}</div><div class="stat-label">players</div></div>
-    <div class="stat-card"><div class="stat-num">${submissionCount}</div><div class="stat-label">submitted</div></div>
-    <div class="stat-card"><div class="stat-num">${liveMembers.length - submissionCount}</div><div class="stat-label">pending</div></div>
+    <div class="stat-card"><div class="stat-num">${subCount}</div><div class="stat-label">submitted</div></div>
+    <div class="stat-card"><div class="stat-num">${liveMembers.length-subCount}</div><div class="stat-label">pending</div></div>
     <div class="stat-card"><div class="stat-num">${Object.keys(liveResults).length}</div><div class="stat-label">results in</div></div>
   </div>
 
-  <div class="card"><p class="section-title">enter match results</p>
-  <div class="info-box" style="margin-bottom:12px">Enter the final score after each match. Points calculate instantly for all players.</div>`;
+  <div class="card"><p class="section-title">📋 enter match results</p>
+  <div class="info-box" style="margin-bottom:12px">Enter the final score after each match ends. Leaderboard updates instantly for all players.</div>`;
 
-  Object.keys(byDate).sort().reverse().forEach(date => {
-    h += `<div style="font-size:11px;font-weight:600;color:#888;padding:8px 0 5px;border-top:1px solid rgba(0,0,0,0.06);margin-top:4px;text-transform:uppercase;letter-spacing:0.05em">${fmtDate(date)}</div>`;
-    byDate[date].forEach(f => {
-      const r = liveResults[f.id];
+  adminDates.forEach(date => {
+    h += `<div style="font-size:11px;font-weight:600;color:#888;padding:8px 0 4px;border-top:1px solid rgba(0,0,0,0.06);margin-top:6px;text-transform:uppercase;letter-spacing:.05em">${fmtDate(date)}</div>`;
+    (byDate[date]||[]).forEach(f => {
+      const r=liveResults[f.id];
       h += `<div class="admin-fix-row">
-        <div class="ateams">${f.home} vs ${f.away} <span style="font-size:11px;color:#aaa">${f.label || ('Grp ' + f.group)} | ${f.ist} IST</span></div>`;
-      if (r) {
+        <div class="ateams">${f.home} vs ${f.away} <span style="font-size:11px;color:#aaa">Grp ${f.group} · ${f.ist} IST</span></div>`;
+      if (r && typeof r==='object' && 'h' in r) {
         h += `<span class="entered-tag">${r.h}–${r.a} ✓</span>
               <button class="btn-sm" style="font-size:11px;padding:2px 8px" onclick="clearRes(${f.id})">Edit</button>`;
       } else {
         h += `<input type="number" min="0" max="20" class="rinp" id="rh${f.id}" placeholder="H">
-              <span style="font-size:13px;color:#bbb">–</span>
+              <span style="font-size:12px;color:#bbb">–</span>
               <input type="number" min="0" max="20" class="rinp" id="ra${f.id}" placeholder="A">
               <button class="btn-save" onclick="saveRes(${f.id})">Save</button>`;
       }
@@ -809,88 +805,89 @@ function renderAdmin(tc) {
     });
   });
 
-  // ── Submission status + UNLOCK controls ──
-  h += `</div><div class="card"><p class="section-title">submissions today · ${fmtDate(activeDate)}</p>
-  <div class="info-box" style="margin-bottom:12px">Use <strong>Unlock</strong> to let a member re-edit their predictions. They will be auto-locked again after they re-submit.</div>`;
+  h += `</div>
+
+  <div class="card"><p class="section-title">👁 submissions & unlock · ${fmtDate(ad)}</p>
+  <div class="info-box" style="margin-bottom:10px">Unlock lets a member re-edit their predictions. They auto-lock again after re-submitting.</div>`;
 
   liveMembers.forEach(m => {
-    const sub      = hasSubmitted(m.name, activeDate);
-    const unlocked = isUnlocked(m.name, activeDate);
-    const av       = avC(m.name);
-    h += `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
-      <div class="avatar" style="background:${av.bg};color:${av.tx};width:30px;height:30px;font-size:11px;flex-shrink:0">${initials(m.name)}</div>
-      <span style="flex:1;font-size:13px;font-weight:500">${m.name}</span>
-      <span class="badge ${sub ? (unlocked ? 'b-unlocked' : 'b-submitted') : 'b-closed'}">
-        ${sub ? (unlocked ? '🔓 unlocked' : '✓ submitted') : '⏳ pending'}
-      </span>
-      ${sub
-        ? `<button class="${unlocked ? 'btn-lock' : 'btn-unlock'}" onclick="toggleUnlock('${m.name}','${activeDate}',${unlocked})">
-             ${unlocked ? 'Lock' : 'Unlock'}
-           </button>`
-        : ''}
+    const sub=hasSubmitted(m.name,ad), unlocked=isUnlocked(m.name,ad);
+    const myPreds=livePredictions[m.name]||{};
+    const av=avC(m.name);
+    h += `<div style="padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:${sub?'6px':'0'}">
+        <div class="avatar" style="background:${av.bg};color:${av.tx};width:30px;height:30px;font-size:11px;flex-shrink:0">${ini(m.name)}</div>
+        <span style="flex:1;font-size:13px;font-weight:600">${m.name}</span>
+        <span class="badge ${sub?(unlocked?'b-unlock':'b-sub'):'b-closed'}">${sub?(unlocked?'🔓 unlocked':'✓ submitted'):'⏳ pending'}</span>
+        ${sub?`<button class="${unlocked?'btn-lock':'btn-unlock'}" onclick="toggleUnlock('${m.name}','${ad}',${unlocked})">${unlocked?'Lock':'Unlock'}</button>`:''}
+      </div>
+      ${sub ? `<div style="display:flex;flex-wrap:wrap;gap:4px;padding-left:38px">
+        ${FIXTURES.filter(f=>f.date===ad).map(f=>{
+          const p=myPreds[f.id];
+          return p
+            ? `<span style="font-size:12px;padding:2px 8px;background:#f5f5f7;border-radius:6px">${f.home} <strong>${p.h}–${p.a}</strong> ${f.away}</span>`
+            : `<span style="font-size:12px;padding:2px 8px;background:#fafafa;border-radius:6px;color:#aaa">${f.home} vs ${f.away}: —</span>`;
+        }).join('')}
+      </div>` : ''}
     </div>`;
   });
 
+  h += `</div>
 
-  h += `</div><div class="card"><p class="section-title">assign knockout teams</p>
-  <div class="info-box" style="margin-bottom:12px">Use the dropdowns to assign teams manually to the official knockout fixtures when those rounds begin.</div>`;
-  const selectableTeams = getSelectableTeams();
-  getManualKnockoutFixtures().forEach(f => {
-    h += `<div class="admin-fix-row" style="display:block;padding:10px 0"><div style="font-size:12px;font-weight:700;color:#666;margin-bottom:6px">${f.label} | ${fmtDate(f.date)} | ${f.ist} IST</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select class="edit-inp" id="kh_${f.id}" style="min-width:180px"><option value="TBD">Home team</option>${selectableTeams.map(t => `<option value="${t}" ${f.home===t?'selected':''}>${t}</option>`).join('')}</select><span style="font-size:12px;color:#999">vs</span><select class="edit-inp" id="ka_${f.id}" style="min-width:180px"><option value="TBD">Away team</option>${selectableTeams.map(t => `<option value="${t}" ${f.away===t?'selected':''}>${t}</option>`).join('')}</select><button class="btn-save" onclick="saveKnockoutTeams('${f.id}')">Save teams</button></div></div>`;
+  <div class="card"><p class="section-title">👥 manage members & PINs</p>
+  <div class="warn-box" style="margin-bottom:10px">Send each PIN privately via WhatsApp DM using "Copy msg".</div>`;
+
+  liveMembers.forEach((m, i) => {
+    h += `<div class="member-row">
+      <span style="color:#aaa;font-size:12px;width:22px;flex-shrink:0">${i+1}.</span>
+      <input class="edit-inp" value="${m.name}" style="flex:1;min-width:80px" onchange="updateMember(${i},'name',this.value)">
+      <input class="edit-inp" maxlength="4" value="${m.pin}" style="width:58px;font-family:monospace;font-weight:700;color:#185fa5;text-align:center" onchange="updateMember(${i},'pin',this.value)">
+      <button class="copy-btn" onclick="copyMsg('${m.name}','${m.pin}')">Copy msg</button>
+    </div>`;
   });
 
-  h += `</div><div class="card"><p class="section-title">manage members & PINs</p>
-  <div class="warn-box" style="margin-bottom:10px">Send each PIN privately via WhatsApp DM. Use the "Copy msg" button.</div>
-  <table class="member-table">
-    <tr><th>#</th><th>Name</th><th>PIN</th><th></th></tr>
-    ${liveMembers.map((m,i) => `<tr>
-      <td style="color:#aaa;font-size:12px">${i+1}</td>
-      <td><input class="edit-inp" value="${m.name}" style="width:110px" onchange="updateMember(${i},'name',this.value)"></td>
-      <td><input class="edit-inp" maxlength="4" value="${m.pin}" style="width:60px;font-family:monospace;font-weight:700;color:#185fa5;text-align:center" onchange="updateMember(${i},'pin',this.value)"></td>
-      <td><button class="copy-btn" onclick="copyMsg('${m.name}','${m.pin}')">Copy msg</button></td>
-    </tr>`).join('')}
-  </table>
-  </div>`;
-
+  h += `</div>`;
   tc.innerHTML = h;
 }
 
-// ── ADMIN ACTIONS ─────────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// ADMIN ACTIONS
+// ══════════════════════════════════════════════
 function saveRes(id) {
-  const h = document.getElementById('rh'+id)?.value;
-  const a = document.getElementById('ra'+id)?.value;
+  const h=document.getElementById('rh'+id)?.value;
+  const a=document.getElementById('ra'+id)?.value;
   if (h===''||a===''||h===undefined) return;
-  db.ref(`results/${id}`).set({h:+h, a:+a}).catch(e => alert('Error: '+e.message));
+  db.ref(`results/${id}`).set({h:+h,a:+a}).catch(e=>alert('Error: '+e.message));
 }
 
 function clearRes(id) {
-  db.ref(`results/${id}`).remove().catch(e => alert('Error: '+e.message));
+  db.ref(`results/${id}`).remove().catch(e=>alert('Error: '+e.message));
 }
 
 function toggleUnlock(name, date, currentlyUnlocked) {
-  const key = dateKey(date);
-  if (currentlyUnlocked) {
-    db.ref(`unlocked/${name}/${key}`).remove().catch(e => alert('Error: '+e.message));
-  } else {
-    db.ref(`unlocked/${name}/${key}`).set(true).catch(e => alert('Error: '+e.message));
-  }
+  const ref=db.ref(`unlocked/${name}/${dk(date)}`);
+  if (currentlyUnlocked) ref.remove().catch(e=>alert('Error: '+e.message));
+  else ref.set(true).catch(e=>alert('Error: '+e.message));
 }
 
 function updateMember(i, field, val) {
-  const updated = [...liveMembers];
-  updated[i] = {...updated[i], [field]: val.trim()};
-  db.ref('members').set(updated).catch(e => alert('Error: '+e.message));
+  const updated=[...liveMembers];
+  updated[i]={...updated[i],[field]:val.trim()};
+  db.ref('members').set(updated).catch(e=>alert('Error saving: '+e.message));
 }
 
 function copyMsg(name, pin) {
-  const msg = `Hi ${name}! 🏆\n\nYou're invited to Lead and Leap World Cup 2026 Prediction Contest!\n\n🔗 Link: https://ll-wc-prediction.vercel.app\n👤 Name: ${name}\n🔑 PIN: ${pin}\n\nPredict tomorrow's match scores every evening before 10 PM IST.\nMost points by July 19 wins the prize!\n\nGood luck! ⚽🇮🇳`;
+  const msg=`Hi ${name}! 🏆\n\nYou're invited to Lead and Leap World Cup 2026 Prediction Contest!\n\n🔗 Link: https://ll-wc-prediction.vercel.app\n👤 Name: ${name}\n🔑 PIN: ${pin}\n\nPredict tomorrow's match scores every evening before 10 PM IST.\nMost points by July 19 wins the prize!\n\nGood luck! ⚽🇮🇳`;
   navigator.clipboard?.writeText(msg)
-    .then(() => alert('✅ Copied! Paste in WhatsApp to ' + name))
-    .catch(() => alert('PIN for ' + name + ': ' + pin));
+    .then(()=>alert('✅ Copied! Paste in WhatsApp to '+name))
+    .catch(()=>alert('PIN for '+name+': '+pin));
 }
 
-// ── BOOT ──────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════════
 initFirebase();
+if (session) { initApp(); } else { initLogin(); }
 </script>
 </body>
 </html>
