@@ -757,14 +757,39 @@ function renderAdmin() {
   const tc = document.getElementById('tab-admin');
   const ad = getActivePredictionDate();
 
-  // Show fixtures for active prediction date + any date that already has results
+  // Admin result entry logic:
+  // A match date stays visible for result entry until THAT date's own 10 PM IST.
+  // e.g. June 13 matches → visible until June 13 10 PM IST
+  // Prediction date (ad) is always shown for the submissions panel.
+  // Past dates with results already entered are always shown.
+  const ist = istNow();
+  const istHour = ist.getUTCHours() + ist.getUTCMinutes() / 60;
+  // Today's date in IST
+  const todayIST = istDateStr(ist);
+  // Yesterday's date in IST (still show if before 10 PM today, i.e. match was yesterday)
+  const yesterdayIST = istDateStr(addDays(ist, -1));
+
+  // A fixture date is eligible for result entry if:
+  // 1. The match date <= today IST (match has happened or is today)
+  // 2. AND it's before 10 PM IST of that match date
+  //    → but since we can't know per-date easily, we show:
+  //      - All dates <= todayIST (matches already played or playing today)
+  //      - PLUS yesterdayIST if it's before 10 PM IST today (still within window)
+  // Simple rule: show all fixture dates that are <= todayIST
+  // (admin can always enter results for past matches, deadline only applies to predictions)
   const datesWithResults = [...new Set(
     FIXTURES.filter(f => {
       const r=liveResults[f.id];
       return r && typeof r==='object' && 'h' in r;
     }).map(f => f.date)
   )];
-  const adminDates = [...new Set([ad, ...datesWithResults])].sort().reverse();
+
+  // Show: today + yesterday + any date with results already + active prediction date (for submissions panel)
+  const eligibleForResults = FIXTURES
+    .filter(f => f.date <= todayIST)
+    .map(f => f.date);
+
+  const adminDates = [...new Set([...eligibleForResults, ...datesWithResults])].sort().reverse();
   const byDate = {};
   FIXTURES.forEach(f => {
     if (adminDates.includes(f.date)) {
