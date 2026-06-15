@@ -97,6 +97,10 @@ select.inp { cursor: pointer; }
 .member-row { display: flex; align-items: center; gap: 6px; padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
 .member-row:last-child { border-bottom: none; }
 .loading { display: flex; align-items: center; justify-content: center; padding: 3rem; flex-direction: column; gap: 12px; }
+.login-leader-card { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+.login-highlight-card { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 14px; padding: 14px 16px; margin-top: 10px; }
+.joke-text { font-size: 13px; color: #333; line-height: 1.6; padding: 10px 12px; background: #f5f5f7; border-radius: 8px; font-style: italic; margin-bottom: 10px; }
+.deadline-reminder { background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px; padding: 9px 13px; margin-bottom: 10px; font-size: 13px; color: #7a5100; display: flex; align-items: center; gap: 8px; }
 .spinner { width: 32px; height: 32px; border: 3px solid #e0e0e0; border-top-color: #185fa5; border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .empty-state { text-align: center; padding: 2.5rem 1rem; color: #888; font-size: 14px; }
@@ -115,6 +119,18 @@ select.inp { cursor: pointer; }
   <!-- LOGIN -->
   <div id="page-login">
     <div class="login-wrap">
+
+      <!-- TOP: LEADERBOARD CARD -->
+      <div class="login-leader-card" id="login-leader-card">
+        <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">🏆 current leader</div>
+        <div id="login-leader-content" style="font-size:13px;color:#888;text-align:center;padding:8px 0">Loading standings...</div>
+      </div>
+
+      <!-- MIDDLE: DEADLINE + SIGN IN -->
+      <div id="login-deadline" class="deadline-reminder" style="display:none">
+        ⏰ <span id="login-deadline-text"></span>
+      </div>
+
       <div class="card">
         <div style="text-align:center;margin-bottom:1.1rem">
           <div style="font-size:28px;margin-bottom:5px">🔐</div>
@@ -134,6 +150,13 @@ select.inp { cursor: pointer; }
         <button class="btn-primary" onclick="doLogin()">Enter ⚽</button>
       </div>
       <div class="info-box" style="margin-top:.8rem">Your PIN was shared by the admin (Irfan). Contact Irfan if you need yours.</div>
+
+      <!-- BOTTOM: YESTERDAY'S HIGHLIGHT -->
+      <div class="login-highlight-card" id="login-highlight-card" style="display:none">
+        <div style="font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">⚽ yesterday's highlight</div>
+        <div id="login-highlight-content"></div>
+      </div>
+
     </div>
   </div>
 
@@ -353,7 +376,7 @@ function initFirebase() {
 
 function onData() {
   if (!liveLoaded) return;
-  if (!session) { buildLoginDropdown(); return; }
+  if (!session) { buildLoginDropdown(); populateLoginCards(); return; }
   refreshTab();
 }
 
@@ -412,6 +435,202 @@ function buildLoginDropdown() {
     liveMembers.map(m=>`<option value="${m.name}">${m.name}</option>`).join('') +
     '<option value="__admin__">⚙️ Admin</option>';
   if (cur) sel.value = cur;
+  populateLoginCards();
+}
+
+// ── AVATAR COLORS for login ───────────────────────────────────────────────────
+function loginAvatar(name) {
+  const av = avC(name);
+  return `<div style="width:40px;height:40px;border-radius:50%;background:${av.bg};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:${av.tx};flex-shrink:0">${ini(name)}</div>`;
+}
+
+// ── JOKE GENERATOR — template based, uses real data ───────────────────────────
+function generateJoke(matches, customJoke) {
+  if (customJoke && customJoke.trim()) return customJoke.trim();
+  if (!matches || !matches.length) return null;
+
+  const jokes = [];
+  matches.forEach(({home, away, rh, ra, exactPickers, correctPickers}) => {
+    const diff = Math.abs(rh - ra);
+    const total = rh + ra;
+    const winner = rh > ra ? home : ra > rh ? away : null;
+    const loser  = rh > ra ? away : ra > rh ? home : null;
+    const score  = `${rh}–${ra}`;
+    const exact  = exactPickers || [];
+    const correct= correctPickers || [];
+
+    let joke = '';
+
+    if (exact.length > 0) {
+      const names = exact.slice(0,2).join(' & ');
+      const extras = exact.length > 2 ? ` and ${exact.length-2} more` : '';
+      joke = `🎯 ${names}${extras} called ${home} ${score} ${away} EXACTLY! Fortune teller or football genius? Either way, respect! 🤩`;
+    } else if (rh === ra) {
+      if (correct.length > 0) {
+        joke = `🤝 ${home} ${score} ${away} — a boring draw! ${correct.length} people predicted the stalemate. They deserve a prize just for watching. 😴`;
+      } else {
+        joke = `🤝 ${home} ${score} ${away} — nobody wanted this draw, and it shows — zero exact scores from the whole office! 😅`;
+      }
+    } else if (diff >= 3) {
+      if (correct.length === 0) {
+        joke = `💥 ${winner} absolutely demolished ${loser} ${score}! Nobody in the office saw THAT coming. Better luck predicting tomorrow! 😂`;
+      } else {
+        joke = `💥 ${winner} hammered ${loser} ${score}! ${correct.length} smart cookie${correct.length>1?'s':''} backed the right team. The rest — we don't talk about it. 😬`;
+      }
+    } else if (total === 0) {
+      joke = `😴 ${home} 0–0 ${away} — zero goals, zero excitement, maximum yawning. At least ${correct.length || 'someone'} predicted the snooze-fest correctly! 💤`;
+    } else if (diff === 1 && total >= 4) {
+      joke = `🎢 ${home} ${score} ${away} — a thriller! ${correct.length} people got the result right but nobody nailed the exact score. So close! 😩`;
+    } else {
+      if (correct.length === 0) {
+        joke = `🤔 ${home} ${score} ${away} — and zero people got it right! The World Cup remains unpredictable, and so does this office. 😂`;
+      } else if (correct.length >= 5) {
+        joke = `👀 ${home} ${score} ${away} — ${correct.length} people predicted this one! Were you all watching the same training video? 😄`;
+      } else {
+        joke = `⚽ ${home} ${score} ${away} — ${correct.length} got the result, ${exact.length} got it exact. Not bad, not great, very Lead and Leap! 😎`;
+      }
+    }
+    if (joke) jokes.push(joke);
+  });
+
+  return jokes.length ? jokes[0] : null;
+}
+
+// ── POPULATE LOGIN CARDS with live data ───────────────────────────────────────
+function populateLoginCards() {
+  // ── LEADERBOARD TOP 3 ──
+  const leaderEl = document.getElementById('login-leader-content');
+  if (leaderEl && liveMembers.length) {
+    const lb = leaderboard();
+    const top3 = lb.slice(0, 3);
+    const medals = ['🥇','🥈','🥉'];
+    let h = '';
+    // Big #1
+    if (top3[0]) {
+      const m = top3[0];
+      h += `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        ${loginAvatar(m.name)}
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:600;color:#111">${m.name}</div>
+          <div style="font-size:12px;color:#888;margin-top:1px">${m.correct} correct · ${m.exact} exact</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:26px;font-weight:700;color:#185fa5;line-height:1">${m.total}</div>
+          <div style="font-size:10px;color:#888">pts</div>
+        </div>
+      </div>`;
+    }
+    // #2 and #3
+    if (top3.length > 1) {
+      h += `<div style="border-top:1px solid rgba(0,0,0,0.07);padding-top:8px;display:flex;flex-direction:column;gap:5px">`;
+      top3.slice(1).forEach((m, i) => {
+        h += `<div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px;width:20px">${medals[i+1]}</span>
+          <span style="font-size:13px;flex:1;color:#111">${m.name}</span>
+          <span style="font-size:13px;font-weight:600;color:#111">${m.total} pts</span>
+        </div>`;
+      });
+      h += `</div>`;
+    }
+    leaderEl.innerHTML = h || '<span style="color:#aaa">No predictions yet!</span>';
+  }
+
+  // ── DEADLINE REMINDER ──
+  const ist  = istNow();
+  const hour = ist.getUTCHours() + ist.getUTCMinutes() / 60;
+  const ad   = getActivePredictionDate();
+  const dlEl = document.getElementById('login-deadline');
+  const dlTx = document.getElementById('login-deadline-text');
+  if (dlEl && dlTx) {
+    if (!deadlinePassed()) {
+      dlEl.style.display = 'flex';
+      dlTx.innerHTML = `Predict <strong>${fmtDate(ad)}</strong> matches — deadline <strong>tonight 10 PM IST</strong>`;
+    } else {
+      dlEl.style.display = 'flex';
+      dlTx.innerHTML = `🔒 Predictions closed for today. Next window opens tomorrow morning.`;
+    }
+  }
+
+  // ── YESTERDAY'S HIGHLIGHT ──
+  const highlightCard = document.getElementById('login-highlight-card');
+  const highlightContent = document.getElementById('login-highlight-content');
+  if (!highlightCard || !highlightContent) return;
+
+  // Get yesterday's date in IST
+  const yesterdayIST = istDateStr(addDays(ist, -1));
+  const yesterdayFixtures = FIXTURES.filter(f => f.date === yesterdayIST);
+
+  if (!yesterdayFixtures.length) { highlightCard.style.display = 'none'; return; }
+
+  // Check if any results exist for yesterday
+  const doneFixtures = yesterdayFixtures.filter(f => {
+    const r = liveResults[f.id];
+    return r && typeof r === 'object' && 'h' in r;
+  });
+
+  if (!doneFixtures.length) { highlightCard.style.display = 'none'; return; }
+
+  // Build match data with who predicted what
+  const matchData = doneFixtures.map(f => {
+    const r = liveResults[f.id];
+    const rh = r.h, ra = r.a;
+    const exactPickers = [], correctPickers = [];
+    liveMembers.forEach(m => {
+      const p = (livePredictions[m.name] || {})[f.id];
+      if (!p) return;
+      const pts = calcPts(p, r);
+      if (pts === 5) exactPickers.push(m.name);
+      else if (pts === 3) correctPickers.push(m.name);
+    });
+    return { home: f.home, away: f.away, rh, ra, exactPickers, correctPickers };
+  });
+
+  // Get custom joke from Firebase if admin set one
+  const customJoke = liveResults.__customJoke?.[yesterdayIST.replace(/-/g,'_')] || '';
+  const joke = generateJoke(matchData, customJoke);
+
+  let h = '';
+  // Show all yesterday's results
+  doneFixtures.forEach(f => {
+    const r = liveResults[f.id];
+    h += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-size:13px;font-weight:600;color:#111">${f.home}</span>
+      <span style="background:#e6f1fb;color:#0c447c;font-size:14px;font-weight:700;padding:3px 12px;border-radius:100px">${r.h} – ${r.a}</span>
+      <span style="font-size:13px;font-weight:600;color:#111">${f.away}</span>
+    </div>`;
+  });
+
+  // Joke
+  if (joke) {
+    h += `<div class="joke-text">${joke}</div>`;
+  }
+
+  // Points earned badges
+  const allExact = [], allCorrect = [], allWrong = [];
+  matchData.forEach(m => {
+    m.exactPickers.forEach(n => { if(!allExact.includes(n)) allExact.push(n); });
+    m.correctPickers.forEach(n => { if(!allCorrect.includes(n) && !allExact.includes(n)) allCorrect.push(n); });
+  });
+  liveMembers.forEach(m => {
+    if (!allExact.includes(m.name) && !allCorrect.includes(m.name)) {
+      const hadAny = doneFixtures.some(f => (livePredictions[m.name]||{})[f.id]);
+      if (hadAny) allWrong.push(m.name);
+    }
+  });
+
+  if (allExact.length || allCorrect.length) {
+    h += `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">`;
+    allExact.slice(0,4).forEach(n => {
+      h += `<span style="font-size:11px;padding:2px 8px;background:#e8f5e9;color:#1a5c2a;border-radius:100px;font-weight:600">${n} +5 🎯</span>`;
+    });
+    allCorrect.slice(0,4).forEach(n => {
+      h += `<span style="font-size:11px;padding:2px 8px;background:#e6f1fb;color:#0c447c;border-radius:100px;font-weight:600">${n} +3</span>`;
+    });
+    h += `</div>`;
+  }
+
+  highlightContent.innerHTML = h;
+  highlightCard.style.display = 'block';
 }
 
 function initLogin() {
@@ -855,7 +1074,20 @@ function renderAdmin() {
     </div>`;
   });
 
-  h += `</div>`;
+  h += `</div>
+
+  <div class="card"><p class="section-title">😂 customise today's joke</p>
+  <div class="info-box" style="margin-bottom:10px">Leave blank to use the auto-generated joke. Or type your own funny line below — it will show on the login screen for everyone after yesterday's matches.</div>
+  <div style="margin-bottom:8px">
+    <div style="font-size:12px;font-weight:500;color:#666;margin-bottom:5px">Custom joke for <strong>${fmtDate(istDateStr(istNow()))}</strong> results</div>
+    <textarea id="custom-joke-input" style="width:100%;padding:10px 13px;font-size:13px;border:1px solid rgba(0,0,0,0.18);border-radius:10px;background:#fff;color:#111;min-height:80px;resize:vertical;font-family:inherit;line-height:1.5" placeholder="e.g. Brazil showed up, Morocco didn't get the memo 😂 — Naseef sir called it perfectly as usual!">${liveResults.__customJoke?.[istDateStr(istNow()).replace(/-/g,'_')]||''}</textarea>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="btn-save" onclick="saveCustomJoke()">Save joke</button>
+    <button class="btn-sm" onclick="clearCustomJoke()">Clear (use auto)</button>
+  </div>
+  </div>`;
+
   tc.innerHTML = h;
 }
 
@@ -883,6 +1115,21 @@ function updateMember(i, field, val) {
   const updated=[...liveMembers];
   updated[i]={...updated[i],[field]:val.trim()};
   db.ref('members').set(updated).catch(e=>alert('Error saving: '+e.message));
+}
+
+function saveCustomJoke() {
+  const val = document.getElementById('custom-joke-input')?.value.trim() || '';
+  const dateKey = istDateStr(istNow()).replace(/-/g,'_');
+  db.ref(`results/__customJoke/${dateKey}`).set(val || null)
+    .then(() => alert('✅ Joke saved! It will appear on the login screen.'))
+    .catch(e => alert('Error: ' + e.message));
+}
+
+function clearCustomJoke() {
+  const dateKey = istDateStr(istNow()).replace(/-/g,'_');
+  db.ref(`results/__customJoke/${dateKey}`).remove()
+    .then(() => { alert('✅ Cleared! Auto-joke will be used.'); renderAdmin(); })
+    .catch(e => alert('Error: ' + e.message));
 }
 
 function copyMsg(name, pin) {
