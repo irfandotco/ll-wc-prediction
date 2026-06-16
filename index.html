@@ -106,6 +106,15 @@ select.inp { cursor: pointer; }
 .empty-state { text-align: center; padding: 2.5rem 1rem; color: #888; font-size: 14px; }
 .tab-page { display: none; }
 .tab-page.active { display: block; }
+.wall-msg { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 11px 14px; margin-bottom: 8px; }
+.wall-msg.mine { border-color: #185fa5; background: #f0f7ff; }
+.wall-msg.deleted { background: #f5f5f7; border-color: rgba(0,0,0,0.05); }
+.wall-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+.wall-input { width: 100%; padding: 10px 13px; font-size: 14px; border: 1px solid rgba(0,0,0,0.18); border-radius: 10px; background: #fff; color: #111; font-family: inherit; resize: none; line-height: 1.5; }
+.wall-input:focus { outline: none; border-color: #185fa5; box-shadow: 0 0 0 3px rgba(24,95,165,0.1); }
+.react-btn { background: none; border: 1px solid rgba(0,0,0,0.1); border-radius: 100px; padding: 2px 8px; font-size: 12px; cursor: pointer; color: #666; transition: all 0.15s; }
+.react-btn:hover { background: #e6f1fb; border-color: #185fa5; color: #185fa5; }
+.react-btn.reacted { background: #e6f1fb; border-color: #185fa5; color: #185fa5; font-weight: 600; }
 </style>
 </head>
 <body>
@@ -165,6 +174,7 @@ select.inp { cursor: pointer; }
     <div class="tabs" id="tab-bar"></div>
     <div class="tab-page" id="tab-predict"></div>
     <div class="tab-page" id="tab-leaderboard"></div>
+    <div class="tab-page" id="tab-wall"></div>
     <div class="tab-page" id="tab-results"></div>
     <div class="tab-page" id="tab-rules"></div>
     <div class="tab-page" id="tab-admin"></div>
@@ -286,6 +296,7 @@ let livePredictions = {};
 let liveSubmitted   = {};
 let liveResults     = {};
 let liveUnlocked    = {};
+let liveWall        = {};  // { msgId: { name, text, time, reactions:{name:true} } }
 let liveLoaded      = false;
 
 // ══════════════════════════════════════════════
@@ -367,6 +378,7 @@ function initFirebase() {
     db.ref('submitted').on('value',   snap => { liveSubmitted   = snap.exists() ? snap.val() : {}; onData(); });
     db.ref('results').on('value',     snap => { liveResults     = snap.exists() ? snap.val() : {}; onData(); });
     db.ref('unlocked').on('value',    snap => { liveUnlocked    = snap.exists() ? snap.val() : {}; onData(); });
+    db.ref('wall').on('value',        snap => { liveWall        = snap.exists() ? snap.val() : {}; onData(); });
     liveLoaded = true;
   } catch(e) {
     console.error(e);
@@ -694,8 +706,8 @@ function initApp() {
   document.getElementById('page-app').style.display   = 'block';
 
   const tabs = isAdmin
-    ? [['admin','⚙️ Admin'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']]
-    : [['predict','⚽ Predict'],['leaderboard','🏆 Board'],['results','📊 Results'],['rules','📋 Rules']];
+    ? [['admin','⚙️ Admin'],['leaderboard','🏆 Board'],['wall','💬 Wall'],['results','📊 Results'],['rules','📋 Rules']]
+    : [['predict','⚽ Predict'],['leaderboard','🏆 Board'],['wall','💬 Wall'],['results','📊 Results'],['rules','📋 Rules']];
 
   document.getElementById('tab-bar').innerHTML = tabs
     .map(([id,lbl]) => `<button class="tab" id="tabBtn-${id}" onclick="switchTab('${id}')">${lbl}</button>`)
@@ -712,7 +724,7 @@ function switchTab(t) {
   document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
   const btn = document.getElementById('tabBtn-'+t);
   if (btn) btn.classList.add('active');
-  ['predict','leaderboard','results','rules','admin'].forEach(id => {
+  ['predict','leaderboard','wall','results','rules','admin'].forEach(id => {
     document.getElementById('tab-'+id).style.display = id === t ? 'block' : 'none';
   });
   renderTab(t);
@@ -723,6 +735,7 @@ function refreshTab() { if (session) renderTab(activeTab); }
 function renderTab(t) {
   if      (t==='predict'     && !session.admin) renderPredict();
   else if (t==='leaderboard')                   renderLeaderboard();
+  else if (t==='wall')                          renderWall();
   else if (t==='results')                       renderResults();
   else if (t==='rules')                         renderRules();
   else if (t==='admin' && session.admin)        renderAdmin();
@@ -913,6 +926,113 @@ function renderLeaderboard() {
   });
   h+=`</div><div class="info-box">🔴 Live — updates instantly when results are entered by admin.</div>`;
   tc.innerHTML=h;
+}
+
+// ══════════════════════════════════════════════
+// TRASHTALK WALL
+// ══════════════════════════════════════════════
+function renderWall() {
+  const tc  = document.getElementById('tab-wall');
+  const me  = session.admin ? 'Admin' : session.name;
+  const msgs = Object.entries(liveWall)
+    .filter(([,m]) => !m.deleted)
+    .sort((a,b) => (b[1].time||0) - (a[1].time||0));
+
+  const canPost = true;
+
+  let h = `<div class="card" style="margin-bottom:10px">
+    <p class="section-title">💬 trashtalk wall · 24/7 open</p>
+    <div class="info-box" style="margin-bottom:12px">Say what you want — predictions, roasts, celebrations. Max 3 posts per day. Keep it fun! 😄</div>`;
+
+  h += `<textarea class="wall-input" id="wall-input" rows="2" maxlength="150" placeholder="Talk your trash... 😂 (max 150 chars)"></textarea>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+      <span style="font-size:12px;color:#888" id="wall-charcount">150 chars left</span>
+      <button class="btn-submit" style="padding:8px 20px;font-size:13px" onclick="postWallMsg()">Post 🔥</button>
+    </div>`;
+  h += `</div>`;
+
+  if (!msgs.length) {
+    h += `<div class="card"><div class="empty-state">No posts yet — be the first to talk trash! 🔥</div></div>`;
+  } else {
+    msgs.forEach(([id, m]) => {
+      const av = avC(m.name);
+      const isMe = m.name === me;
+      const isAdmin = session.admin;
+      const reactionCount = Object.keys(m.reactions||{}).length;
+      const iReacted = !!(m.reactions||{})[me];
+      const timeStr = m.time ? new Date(m.time).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hour12:true}) : '';
+
+      h += `<div class="wall-msg ${isMe?'mine':''}">
+        <div style="display:flex;align-items:flex-start;gap:9px">
+          <div class="wall-avatar" style="background:${av.bg};color:${av.tx}">${ini(m.name)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
+              <span style="font-size:13px;font-weight:600;color:#111">${m.name}</span>
+              ${isMe?'<span style="font-size:10px;padding:1px 6px;border-radius:100px;background:#e6f1fb;color:#185fa5;font-weight:600">you</span>':''}
+              <span style="font-size:11px;color:#aaa;margin-left:auto">${timeStr}</span>
+            </div>
+            <div style="font-size:14px;color:#111;line-height:1.5;word-break:break-word">${m.text}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+              <button class="react-btn ${iReacted?'reacted':''}" onclick="reactWall('${id}')">
+                👍 ${reactionCount > 0 ? reactionCount : ''}
+              </button>
+              ${isAdmin?`<button onclick="deleteWallMsg('${id}')" style="background:none;border:none;font-size:11px;color:#aaa;cursor:pointer;padding:2px 6px">🗑 delete</button>`:''}
+              ${isMe && !isAdmin?`<button onclick="deleteWallMsg('${id}')" style="background:none;border:none;font-size:11px;color:#aaa;cursor:pointer;padding:2px 6px">🗑 delete</button>`:''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  tc.innerHTML = h;
+
+  // Live char counter
+  const inp = document.getElementById('wall-input');
+  if (inp) {
+    inp.addEventListener('input', () => {
+      const left = 150 - inp.value.length;
+      const cc = document.getElementById('wall-charcount');
+      if (cc) cc.textContent = `${left} chars left`;
+    });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); postWallMsg(); }
+    });
+  }
+}
+
+function postWallMsg() {
+  const inp = document.getElementById('wall-input');
+  const text = inp?.value.trim();
+  if (!text) { alert('Type something first! 😄'); return; }
+  if (text.length > 150) { alert('Max 150 characters!'); return; }
+
+  const me = session.admin ? 'Admin' : session.name;
+  const msgId = 'msg_' + Date.now();
+  db.ref(`wall/${msgId}`).set({
+    name: me,
+    text: text,
+    time: Date.now(),
+    reactions: {}
+  }).then(() => {
+    if (inp) inp.value = '';
+    renderWall();
+  }).catch(e => alert('Error: ' + e.message));
+}
+
+function reactWall(msgId) {
+  const me = session.admin ? 'Admin' : session.name;
+  const msg = liveWall[msgId];
+  if (!msg) return;
+  const alreadyReacted = !!(msg.reactions||{})[me];
+  const ref = db.ref(`wall/${msgId}/reactions/${me}`);
+  if (alreadyReacted) ref.remove().catch(e => alert('Error: '+e.message));
+  else ref.set(true).catch(e => alert('Error: '+e.message));
+}
+
+function deleteWallMsg(msgId) {
+  if (!confirm('Delete this message?')) return;
+  db.ref(`wall/${msgId}/deleted`).set(true).catch(e => alert('Error: '+e.message));
 }
 
 // ══════════════════════════════════════════════
