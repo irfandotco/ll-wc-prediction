@@ -424,7 +424,7 @@ function memberStats(name) {
 function leaderboard() {
   return [...liveMembers]
     .map(m => ({...m, ...memberStats(m.name)}))
-    .sort((a,b) => b.total-a.total || b.correct-a.correct || b.exact-a.exact);
+    .sort((a,b) => b.total-a.total || b.exact-a.exact || b.correct-a.correct);
 }
 
 function hasSubmitted(name, date) { return !!(liveSubmitted[name]?.[dk(date)]); }
