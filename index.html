@@ -175,6 +175,7 @@ select.inp { cursor: pointer; }
     <div class="tab-page" id="tab-predict"></div>
     <div class="tab-page" id="tab-leaderboard"></div>
     <div class="tab-page" id="tab-wall"></div>
+    <div class="tab-page" id="tab-mypreds"></div>
     <div class="tab-page" id="tab-results"></div>
     <div class="tab-page" id="tab-rules"></div>
     <div class="tab-page" id="tab-admin"></div>
@@ -250,7 +251,6 @@ const FIXTURES = [
   {id:50,date:'2026-06-25',group:'A',home:'South Africa',away:'South Korea',ist:'03:30'},
   {id:51,date:'2026-06-25',group:'B',home:'Switzerland',away:'Canada',ist:'21:30'},
   {id:52,date:'2026-06-25',group:'B',home:'Bosnia & Herz.',away:'Qatar',ist:'21:30'},
-
   {id:54,date:'2026-06-26',group:'E',home:'Curaçao',away:'Ivory Coast',ist:'01:30'},
   {id:55,date:'2026-06-26',group:'E',home:'Ecuador',away:'Germany',ist:'01:30'},
   {id:56,date:'2026-06-26',group:'F',home:'Tunisia',away:'Netherlands',ist:'04:30'},
@@ -706,7 +706,7 @@ function initApp() {
 
   const tabs = isAdmin
     ? [['admin','⚙️ Admin'],['leaderboard','🏆 Board'],['wall','💬 Wall'],['results','📊 Results'],['rules','📋 Rules']]
-    : [['predict','⚽ Predict'],['leaderboard','🏆 Board'],['wall','💬 Wall'],['results','📊 Results'],['rules','📋 Rules']];
+    : [['predict','⚽ Predict'],['leaderboard','🏆 Board'],['wall','💬 Wall'],['mypreds','📅 My Picks'],['results','📊 Results'],['rules','📋 Rules']];
 
   document.getElementById('tab-bar').innerHTML = tabs
     .map(([id,lbl]) => `<button class="tab" id="tabBtn-${id}" onclick="switchTab('${id}')">${lbl}</button>`)
@@ -723,7 +723,7 @@ function switchTab(t) {
   document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
   const btn = document.getElementById('tabBtn-'+t);
   if (btn) btn.classList.add('active');
-  ['predict','leaderboard','wall','results','rules','admin'].forEach(id => {
+  ['predict','leaderboard','wall','mypreds','results','rules','admin'].forEach(id => {
     document.getElementById('tab-'+id).style.display = id === t ? 'block' : 'none';
   });
   renderTab(t);
@@ -735,6 +735,7 @@ function renderTab(t) {
   if      (t==='predict'     && !session.admin) renderPredict();
   else if (t==='leaderboard')                   renderLeaderboard();
   else if (t==='wall')                          renderWall();
+  else if (t==='mypreds'     && !session.admin) renderMyPreds();
   else if (t==='results')                       renderResults();
   else if (t==='rules')                         renderRules();
   else if (t==='admin' && session.admin)        renderAdmin();
@@ -1032,6 +1033,107 @@ function reactWall(msgId) {
 function deleteWallMsg(msgId) {
   if (!confirm('Delete this message?')) return;
   db.ref(`wall/${msgId}/deleted`).set(true).catch(e => alert('Error: '+e.message));
+}
+
+// ══════════════════════════════════════════════
+// MY PREDICTIONS TAB
+// ══════════════════════════════════════════════
+function renderMyPreds() {
+  const tc  = document.getElementById('tab-mypreds');
+  const me  = session.name;
+  const myP = livePredictions[me] || {};
+
+  // Group fixtures by date, only show dates that have passed deadline
+  const ist     = istNow();
+  const todayIST = istDateStr(ist);
+
+  // All fixture dates up to and including today
+  const pastDates = [...new Set(
+    FIXTURES.filter(f => f.date <= todayIST).map(f => f.date)
+  )].sort().reverse();
+
+  const {total, correct, exact, played} = memberStats(me);
+
+  let h = `<div class="stats-grid">
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">total points</div></div>
+    <div class="stat-card"><div class="stat-num">${played}</div><div class="stat-label">played</div></div>
+    <div class="stat-card"><div class="stat-num">${correct}</div><div class="stat-label">correct</div></div>
+    <div class="stat-card"><div class="stat-num">${exact}</div><div class="stat-label">exact scores</div></div>
+  </div>`;
+
+  if (!pastDates.length) {
+    h += `<div class="card"><div class="empty-state">No past predictions yet. Come back after your first match day! ⚽</div></div>`;
+    tc.innerHTML = h; return;
+  }
+
+  pastDates.forEach(date => {
+    const fixs = FIXTURES.filter(f => f.date === date);
+    if (!fixs.length) return;
+
+    // Points earned on this day
+    let dayPts = 0, dayPlayed = 0;
+    fixs.forEach(f => {
+      const r = liveResults[f.id];
+      const p = myP[f.id];
+      if (r && p && typeof r === 'object' && 'h' in r) {
+        const pts = calcPts(p, r);
+        if (pts !== null) { dayPts += pts; dayPlayed++; }
+      }
+    });
+
+    const hasPreds = fixs.some(f => myP[f.id]);
+    if (!hasPreds) {
+      // Show date with "no prediction" note
+      h += `<div class="card" style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
+          <span style="font-size:13px;font-weight:600;color:#111">${fmtDate(date)}</span>
+          <span class="badge b-closed">no prediction</span>
+        </div>
+      </div>`;
+      return;
+    }
+
+    h += `<div class="card" style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span style="font-size:13px;font-weight:600;color:#111">${fmtDate(date)}</span>
+        ${dayPlayed > 0
+          ? `<span style="font-size:13px;font-weight:700;color:#185fa5">+${dayPts} pts</span>`
+          : `<span style="font-size:12px;color:#888">results pending</span>`}
+      </div>`;
+
+    fixs.forEach(f => {
+      const pred   = myP[f.id];
+      const result = liveResults[f.id];
+      const hasResult = result && typeof result === 'object' && 'h' in result;
+      const pts    = hasResult && pred ? calcPts(pred, result) : null;
+      const ptsCls = pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':pts===0?'b-wrong':'';
+      const ptsLabel = pts===5?'🎯 +5':pts===3?'✅ +3':pts===1?'↗ +1':pts===0?'❌ 0':'';
+
+      h += `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:500;color:#111;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+            ${f.home} vs ${f.away}
+          </div>
+          <div style="font-size:11px;color:#888;margin-top:1px">Group ${f.group} · ${f.ist} IST</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          ${pred
+            ? `<span style="font-size:14px;font-weight:700;color:#185fa5">${pred.h}–${pred.a}</span>`
+            : `<span style="font-size:13px;color:#bbb">—</span>`}
+          ${hasResult
+            ? `<span style="font-size:12px;color:#888">vs <strong>${result.h}–${result.a}</strong></span>`
+            : `<span style="font-size:11px;color:#bbb">pending</span>`}
+          ${pts !== null
+            ? `<span class="badge ${ptsCls}" style="min-width:48px;text-align:center">${ptsLabel}</span>`
+            : ''}
+        </div>
+      </div>`;
+    });
+
+    h += `</div>`;
+  });
+
+  tc.innerHTML = h;
 }
 
 // ══════════════════════════════════════════════
