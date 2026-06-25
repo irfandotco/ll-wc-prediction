@@ -176,7 +176,6 @@ select.inp { cursor: pointer; }
     <div class="tab-page" id="tab-leaderboard"></div>
     <div class="tab-page" id="tab-wall"></div>
     <div class="tab-page" id="tab-mypreds"></div>
-    <div class="tab-page" id="tab-results"></div>
     <div class="tab-page" id="tab-rules"></div>
     <div class="tab-page" id="tab-admin"></div>
     <div style="text-align:center;margin-top:8px">
@@ -705,8 +704,8 @@ function initApp() {
   document.getElementById('page-app').style.display   = 'block';
 
   const tabs = isAdmin
-    ? [['admin','⚙️ Admin'],['leaderboard','🏆 Board'],['wall','💬 Wall'],['results','📊 Results'],['rules','📋 Rules']]
-    : [['predict','⚽ Predict'],['leaderboard','🏆 Board'],['wall','💬 Wall'],['mypreds','📅 My Picks'],['results','📊 Results'],['rules','📋 Rules']];
+    ? [['admin','⚙️ Admin'],['leaderboard','🏆 Board'],['wall','💬 Wall'],['rules','📋 Rules']]
+    : [['predict','⚽ Predict'],['leaderboard','🏆 Board'],['wall','💬 Wall'],['mypreds','📅 My Picks'],['rules','📋 Rules']];
 
   document.getElementById('tab-bar').innerHTML = tabs
     .map(([id,lbl]) => `<button class="tab" id="tabBtn-${id}" onclick="switchTab('${id}')">${lbl}</button>`)
@@ -723,7 +722,7 @@ function switchTab(t) {
   document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
   const btn = document.getElementById('tabBtn-'+t);
   if (btn) btn.classList.add('active');
-  ['predict','leaderboard','wall','mypreds','results','rules','admin'].forEach(id => {
+  ['predict','leaderboard','wall','mypreds','rules','admin'].forEach(id => {
     document.getElementById('tab-'+id).style.display = id === t ? 'block' : 'none';
   });
   renderTab(t);
@@ -736,7 +735,6 @@ function renderTab(t) {
   else if (t==='leaderboard')                   renderLeaderboard();
   else if (t==='wall')                          renderWall();
   else if (t==='mypreds'     && !session.admin) renderMyPreds();
-  else if (t==='results')                       renderResults();
   else if (t==='rules')                         renderRules();
   else if (t==='admin' && session.admin)        renderAdmin();
 }
