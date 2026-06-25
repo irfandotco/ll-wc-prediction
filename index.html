@@ -1163,7 +1163,8 @@ function renderResults() {
       const pts=calcPts(pred,r);
       const cls=pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':'b-wrong';
       const isMe=m.name===me;
-      h+=`<span style="font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;background:#f5f5f7;${isMe?'border:1.5px solid #185fa5;':''}">${m.name}: <strong>${pred.h}–${pred.a}</strong> <span class="badge ${cls}" style="font-size:10px;padding:1px 5px">+${pts}p</span></span>`;
+      // Show as "HomeName H–A AwayName" so direction is always clear
+      h+=`<span style="font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;background:#f5f5f7;${isMe?'border:1.5px solid #185fa5;':''}">${m.name}: <span style="color:#666;font-size:11px">${f.home.split(' ')[0]}</span> <strong>${pred.h}–${pred.a}</strong> <span style="color:#666;font-size:11px">${f.away.split(' ')[0]}</span> <span class="badge ${cls}" style="font-size:10px;padding:1px 5px">+${pts}p</span></span>`;
     });
     h+=`</div></div>`;
   });
