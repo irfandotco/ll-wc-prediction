@@ -1047,9 +1047,14 @@ function renderMyPreds() {
   const ist     = istNow();
   const todayIST = istDateStr(ist);
 
-  // All fixture dates up to and including today
+  // All fixture dates up to and including today PLUS active date if submitted
+  const ad = getActivePredictionDate();
+  const submittedToday = hasSubmitted(me, ad);
+
   const pastDates = [...new Set(
-    FIXTURES.filter(f => f.date <= todayIST).map(f => f.date)
+    FIXTURES
+      .filter(f => f.date <= todayIST || (submittedToday && f.date === ad))
+      .map(f => f.date)
   )].sort().reverse();
 
   const {total, correct, exact, played} = memberStats(me);
