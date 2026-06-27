@@ -1321,15 +1321,21 @@ function renderAdmin() {
     h += `<div style="font-size:11px;font-weight:600;color:#888;padding:8px 0 4px;border-top:1px solid rgba(0,0,0,0.06);margin-top:6px;text-transform:uppercase;letter-spacing:.05em">${fmtDate(date)}</div>`;
     (byDate[date]||[]).forEach(f => {
       const r=liveResults[f.id];
-      h += `<div class="admin-fix-row">
-        <div class="ateams">${f.home} vs ${f.away} <span style="font-size:11px;color:#aaa">Grp ${f.group} · ${f.ist} IST</span></div>`;
+      const ko=isKnockout(f);
+      h += `<div class="admin-fix-row" style="flex-wrap:wrap;gap:6px">
+        <div class="ateams" style="width:100%">${f.home} vs ${f.away} <span style="font-size:11px;color:#aaa">${ko?'🏆 R32':'Grp '+f.group} · ${f.ist} IST</span></div>`;
       if (r && typeof r==='object' && 'h' in r) {
-        h += `<span class="entered-tag">${r.h}–${r.a} ✓</span>
+        h += `<span class="entered-tag">${r.h}–${r.a}${r.pen?' · '+r.pen+' pens':''} ✓</span>
               <button class="btn-sm" style="font-size:11px;padding:2px 8px" onclick="clearRes(${f.id})">Edit</button>`;
       } else {
-        h += `<input type="number" min="0" max="20" class="rinp" id="rh${f.id}" placeholder="H">
+        h += `<input type="number" min="0" max="20" class="rinp" id="rh${f.id}" placeholder="H" oninput="adminScoreInput(${f.id},'${f.home}','${f.away}')">
               <span style="font-size:12px;color:#bbb">–</span>
-              <input type="number" min="0" max="20" class="rinp" id="ra${f.id}" placeholder="A">
+              <input type="number" min="0" max="20" class="rinp" id="ra${f.id}" placeholder="A" oninput="adminScoreInput(${f.id},'${f.home}','${f.away}')">
+              ${ko?`<select id="rpen${f.id}" style="display:none;padding:4px 8px;font-size:12px;border:1px solid rgba(0,0,0,0.18);border-radius:7px;background:#fff;color:#111;cursor:pointer">
+                <option value="">Pen winner...</option>
+                <option value="${f.home}">${f.home}</option>
+                <option value="${f.away}">${f.away}</option>
+              </select>`:''}
               <button class="btn-save" onclick="saveRes(${f.id})">Save</button>`;
       }
       h += `</div>`;
@@ -1397,11 +1403,29 @@ function renderAdmin() {
 // ══════════════════════════════════════════════
 // ADMIN ACTIONS
 // ══════════════════════════════════════════════
+function adminScoreInput(id, home, away) {
+  const hv=document.getElementById('rh'+id)?.value;
+  const av=document.getElementById('ra'+id)?.value;
+  const penSel=document.getElementById('rpen'+id);
+  if (!penSel) return;
+  const isDraw = hv!=='' && av!=='' && hv===av;
+  penSel.style.display = isDraw ? 'inline-block' : 'none';
+  if (!isDraw) penSel.value='';
+}
+
 function saveRes(id) {
   const h=document.getElementById('rh'+id)?.value;
   const a=document.getElementById('ra'+id)?.value;
   if (h===''||a===''||h===undefined) return;
-  db.ref(`results/${id}`).set({h:+h,a:+a}).catch(e=>alert('Error: '+e.message));
+  const result={h:+h,a:+a};
+  // For knockout draws, save penalty winner
+  const penSel=document.getElementById('rpen'+id);
+  if (penSel && penSel.style.display!=='none') {
+    const penVal=penSel.value;
+    if (!penVal) { alert('Please select the penalty winner!'); return; }
+    result.pen=penVal;
+  }
+  db.ref(`results/${id}`).set(result).catch(e=>alert('Error: '+e.message));
 }
 
 function clearRes(id) {
