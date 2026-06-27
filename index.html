@@ -414,9 +414,22 @@ function calcPts(p, r) {
   if (!p || !r) return null;
   const ph=+p.h, pa=+p.a, rh=+r.h, ra=+r.a;
   if (isNaN(ph)||isNaN(pa)) return null;
-  if (ph===rh && pa===ra) return 5;
+  // Exact score match
+  if (ph===rh && pa===ra) {
+    // For knockout draws, also check penalty winner
+    if (ph===pa && r.pen && p.pen) {
+      return p.pen === r.pen ? 5 : 3; // exact draw score but wrong pen = 3pts
+    }
+    return 5;
+  }
   const po=ph>pa?'H':ph<pa?'A':'D', ro=rh>ra?'H':rh<ra?'A':'D';
-  if (po===ro) return 3;
+  if (po===ro) {
+    // Both predict draw — check penalty winner
+    if (po==='D' && ro==='D' && r.pen && p.pen) {
+      return p.pen === r.pen ? 4 : 3; // right draw + right pen winner = 4pts
+    }
+    return 3;
+  }
   if ((ph-pa)===(rh-ra)) return 1;
   return 0;
 }
@@ -438,6 +451,10 @@ function leaderboard() {
   return [...liveMembers]
     .map(m => ({...m, ...memberStats(m.name)}))
     .sort((a,b) => b.total-a.total || b.exact-a.exact || b.correct-a.correct);
+}
+
+function isKnockout(fixture) {
+  return fixture && fixture.group === 'R32';
 }
 
 function hasSubmitted(name, date) { return !!(liveSubmitted[name]?.[dk(date)]); }
@@ -811,7 +828,7 @@ function renderPredict() {
           <div class="fix-body">
             <span class="fix-team">${f.home}</span>
             <div class="score-box">
-              ${pred?`<span class="pred-locked">${pred.h} – ${pred.a}</span>`:'<span style="color:#bbb">—</span>'}
+              ${pred?`<span class="pred-locked">${pred.h} – ${pred.a}</span>${(isKnockout(f)&&pred.pen)?`<span style="font-size:11px;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:100px;font-weight:600;margin-left:4px">🏆 ${pred.pen} pens</span>`:''}`:'<span style="color:#bbb">—</span>'}
               ${result?`<span style="font-size:12px;color:#888;margin-left:8px">Result: <strong>${result.h}–${result.a}</strong></span>`:''}
               ${pts!==null?`<span class="badge ${cls}" style="margin-left:6px">+${pts}pt${pts!==1?'s':''}</span>`:''}
             </div>
@@ -835,7 +852,7 @@ function renderPredict() {
         <div class="fix-body">
           <span class="fix-team">${f.home}</span>
           <div class="score-box">
-            ${pred?`<span class="pred-locked">${pred.h} – ${pred.a}</span>`:'<span style="color:#bbb">—</span>'}
+            ${pred?`<span class="pred-locked">${pred.h} – ${pred.a}</span>${(isKnockout(f)&&pred.pen)?`<span style="font-size:11px;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:100px;font-weight:600;margin-left:4px">🏆 ${pred.pen} pens</span>`:''}`:'<span style="color:#bbb">—</span>'}
             ${result?`<span style="font-size:12px;color:#888;margin-left:8px">Result: <strong>${result.h}–${result.a}</strong></span>`:''}
             ${pts!==null?`<span class="badge ${cls}" style="margin-left:6px">+${pts}pt${pts!==1?'s':''}</span>`:''}
           </div>
@@ -851,17 +868,28 @@ function renderPredict() {
     h += `<div class="card"><p class="section-title">predict ${fmtDate(ad)}</p>`;
     fixs.forEach(f => {
       const pred=myPreds[f.id];
-      h += `<div class="fixture-card">
-        <div class="fix-meta"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
+      h += `<div class="fixture-card" id="fc${f.id}">
+        <div class="fix-meta">
+          <span class="fix-group">${isKnockout(f)?'🏆 Round of 32':'Group '+f.group}</span>
+          <span class="fix-time">${f.ist} IST</span>
+        </div>
         <div class="fix-body">
           <span class="fix-team">${f.home}</span>
           <div class="score-box">
-            <input type="number" min="0" max="20" class="sinp" id="h${f.id}" value="${pred?pred.h:''}" placeholder="0">
+            <input type="number" min="0" max="20" class="sinp" id="h${f.id}" value="${pred?pred.h:''}" placeholder="0" oninput="onScoreInput(${f.id},'${f.home}','${f.away}')">
             <span class="vsep">–</span>
-            <input type="number" min="0" max="20" class="sinp" id="a${f.id}" value="${pred?pred.a:''}" placeholder="0">
+            <input type="number" min="0" max="20" class="sinp" id="a${f.id}" value="${pred?pred.a:''}" placeholder="0" oninput="onScoreInput(${f.id},'${f.home}','${f.away}')">
           </div>
           <span class="fix-team right">${f.away}</span>
         </div>
+        ${isKnockout(f)?`<div id="pen-row-${f.id}" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.06);display:${pred&&String(pred.h)===String(pred.a)&&pred.h!==''&&pred.h!==undefined?'flex':'none'};align-items:center;gap:8px;flex-wrap:wrap">
+          <span style="font-size:12px;color:#e65100;font-weight:500">⚠️ Draw — who wins on penalties?</span>
+          <select id="pen${f.id}" style="padding:5px 10px;font-size:13px;border:1px solid rgba(0,0,0,0.18);border-radius:8px;background:#fff;color:#111;cursor:pointer">
+            <option value="">Pick winner...</option>
+            <option value="${f.home}" ${pred&&pred.pen===f.home?'selected':''}>${f.home}</option>
+            <option value="${f.away}" ${pred&&pred.pen===f.away?'selected':''}>${f.away}</option>
+          </select>
+        </div>`:''}
       </div>`;
     });
     h += `<div style="margin-top:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
@@ -897,6 +925,24 @@ function updateCd(ad) {
   if (diff < 3600000) el.classList.add('urgent');
 }
 
+function onScoreInput(id, home, away) {
+  // Show/hide penalty dropdown for knockout matches
+  const hv = document.getElementById('h'+id)?.value;
+  const av = document.getElementById('a'+id)?.value;
+  const penRow = document.getElementById('pen-row-'+id);
+  if (!penRow) return;
+  const isDraw = hv !== '' && av !== '' && hv === av;
+  penRow.style.display = isDraw ? 'flex' : 'none';
+  if (!isDraw) {
+    const penSel = document.getElementById('pen'+id);
+    if (penSel) penSel.value = '';
+  }
+}
+
+function savePenPick(id) {
+  // Auto-save penalty pick into draft (will be included on submit)
+}
+
 function doSubmit() {
   const me = session.name;
   const ad = getActivePredictionDate();
@@ -906,8 +952,14 @@ function doSubmit() {
   fixs.forEach(f => {
     const hv=document.getElementById('h'+f.id)?.value;
     const av=document.getElementById('a'+f.id)?.value;
-    if (hv===''||av===''||hv===undefined) missing.push(`${f.home} vs ${f.away}`);
-    else preds[f.id]={h:+hv,a:+av};
+    if (hv===''||av===''||hv===undefined) { missing.push(`${f.home} vs ${f.away}`); return; }
+    const pred={h:+hv,a:+av};
+    if (isKnockout(f) && +hv===+av) {
+      const penVal=document.getElementById('pen'+f.id)?.value;
+      if (!penVal) { missing.push(`${f.home} vs ${f.away} — pick penalty winner`); return; }
+      pred.pen=penVal;
+    }
+    preds[f.id]=pred;
   });
   if (missing.length) { alert('Fill ALL match scores before submitting:\n\n'+missing.join('\n')); return; }
   if (!confirm(`Submit predictions for ${fmtDate(ad)}?\n\nYou cannot change them after submitting.`)) return;
