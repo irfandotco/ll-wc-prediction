@@ -410,28 +410,67 @@ function onData() {
 // ══════════════════════════════════════════════
 // SCORING
 // ══════════════════════════════════════════════
-function calcPts(p, r) {
+// Points scale by stage. Group stage = base (3 correct / 5 exact / 1 goal-diff).
+// Each knockout stage adds +1 to correct and exact points.
+const STAGE_POINTS = {
+  group: { correct: 3, exact: 5 },
+  R32:   { correct: 4, exact: 6 },
+  R16:   { correct: 5, exact: 7 },
+  QF:    { correct: 6, exact: 8 },
+  SF:    { correct: 7, exact: 9 },
+  FINAL: { correct: 8, exact: 10 },
+};
+
+function getStageKey(fixture) {
+  if (!fixture) return 'group';
+  const g = fixture.group;
+  if (g === 'R32') return 'R32';
+  if (g === 'R16') return 'R16';
+  if (g === 'QF')  return 'QF';
+  if (g === 'SF')  return 'SF';
+  if (g === 'FINAL' || g === 'F') return 'FINAL';
+  return 'group';
+}
+
+function calcPts(p, r, fixture) {
   if (!p || !r) return null;
   const ph=+p.h, pa=+p.a, rh=+r.h, ra=+r.a;
   if (isNaN(ph)||isNaN(pa)) return null;
+
+  const stageKey = getStageKey(fixture);
+  const pts = STAGE_POINTS[stageKey] || STAGE_POINTS.group;
+  const goalDiffPts = 1; // goal-difference bonus stays the same at every stage
+
   // Exact score match
   if (ph===rh && pa===ra) {
     // For knockout draws, also check penalty winner
     if (ph===pa && r.pen && p.pen) {
-      return p.pen === r.pen ? 5 : 3; // exact draw score but wrong pen = 3pts
+      return p.pen === r.pen ? pts.exact : pts.correct; // exact draw score but wrong pen = correct-result pts
     }
-    return 5;
+    return pts.exact;
   }
   const po=ph>pa?'H':ph<pa?'A':'D', ro=rh>ra?'H':rh<ra?'A':'D';
   if (po===ro) {
     // Both predict draw — check penalty winner
     if (po==='D' && ro==='D' && r.pen && p.pen) {
-      return p.pen === r.pen ? 4 : 3; // right draw + right pen winner = 4pts
+      return p.pen === r.pen ? (pts.correct+1) : pts.correct; // right draw + right pen winner = +1 bonus
     }
-    return 3;
+    return pts.correct;
   }
-  if ((ph-pa)===(rh-ra)) return 1;
+  if ((ph-pa)===(rh-ra)) return goalDiffPts;
   return 0;
+}
+
+// Classify a points value into exact/correct/partial/wrong, accounting for stage scaling
+function ptsCategory(pts, fixture) {
+  if (pts === null || pts === undefined) return null;
+  if (pts === 0) return 'wrong';
+  if (pts === 1) return 'partial';
+  const stageKey = getStageKey(fixture);
+  const stagePts = STAGE_POINTS[stageKey] || STAGE_POINTS.group;
+  if (pts >= stagePts.exact) return 'exact';
+  if (pts >= stagePts.correct) return 'correct';
+  return 'partial';
 }
 
 function memberStats(name) {
@@ -440,8 +479,8 @@ function memberStats(name) {
     const r=liveResults[f.id], p=(livePredictions[name]||{})[f.id];
     if (r && p && typeof r === 'object' && 'h' in r) {
       played++;
-      const pts=calcPts(p,r);
-      if (pts!==null){total+=pts;if(pts>=3)correct++;if(pts===5)exact++;}
+      const pts=calcPts(p,r,f);
+      if (pts!==null){total+=pts;const cat=ptsCategory(pts,f);if(cat==='correct'||cat==='exact')correct++;if(cat==='exact')exact++;}
     }
   });
   return {total,correct,exact,played};
@@ -631,7 +670,7 @@ function populateLoginCards() {
     liveMembers.forEach(m => {
       const p = (livePredictions[m.name] || {})[f.id];
       if (!p) return;
-      const pts = calcPts(p, r);
+      const pts = calcPts(p, r, f);
       if (pts === 5) exactPickers.push(m.name);
       else if (pts === 3) correctPickers.push(m.name);
     });
@@ -821,8 +860,8 @@ function renderPredict() {
       h += `<div class="card"><p class="section-title">your submitted predictions for ${fmtDate(ad)}</p>`;
       fixs.forEach(f => {
         const pred=myPreds[f.id], result=liveResults[f.id];
-        const pts=result&&pred?calcPts(pred,result):null;
-        const cls=pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':pts===0?'b-wrong':'';
+        const pts=result&&pred?calcPts(pred,result,f):null;
+        const cls=pts!==null?'b-'+ptsCategory(pts,f):'';
         h += `<div class="fixture-card locked">
           <div class="fix-meta"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
           <div class="fix-body">
@@ -845,8 +884,8 @@ function renderPredict() {
     h += `<div class="card"><p class="section-title">your locked predictions</p>`;
     fixs.forEach(f => {
       const pred=myPreds[f.id], result=liveResults[f.id];
-      const pts=result&&pred?calcPts(pred,result):null;
-      const cls=pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':pts===0?'b-wrong':'';
+      const pts=result&&pred?calcPts(pred,result,f):null;
+      const cls=pts!==null?'b-'+ptsCategory(pts,f):'';
       h += `<div class="fixture-card locked">
         <div class="fix-meta"><span class="fix-group">Group ${f.group}</span><span class="fix-time">${f.ist} IST</span></div>
         <div class="fix-body">
@@ -1148,7 +1187,7 @@ function renderMyPreds() {
       const r = liveResults[f.id];
       const p = myP[f.id];
       if (r && p && typeof r === 'object' && 'h' in r) {
-        const pts = calcPts(p, r);
+        const pts = calcPts(p, r, f);
         if (pts !== null) { dayPts += pts; dayPlayed++; }
       }
     });
@@ -1177,9 +1216,10 @@ function renderMyPreds() {
       const pred   = myP[f.id];
       const result = liveResults[f.id];
       const hasResult = result && typeof result === 'object' && 'h' in result;
-      const pts    = hasResult && pred ? calcPts(pred, result) : null;
-      const ptsCls = pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':pts===0?'b-wrong':'';
-      const ptsLabel = pts===5?'🎯 +5':pts===3?'✅ +3':pts===1?'↗ +1':pts===0?'❌ 0':'';
+      const pts    = hasResult && pred ? calcPts(pred, result, f) : null;
+      const ptsCls = pts!==null?'b-'+ptsCategory(pts,f):'';
+      const ptsCat5 = pts!==null?ptsCategory(pts,f):null;
+      const ptsLabel = ptsCat5==='exact'?`🎯 +${pts}`:ptsCat5==='correct'?`✅ +${pts}`:ptsCat5==='partial'?`↗ +${pts}`:ptsCat5==='wrong'?'❌ 0':'';
 
       h += `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05)">
         <div style="flex:1;min-width:0">
@@ -1232,8 +1272,8 @@ function renderResults() {
     liveMembers.forEach(m => {
       const pred=(livePredictions[m.name]||{})[f.id];
       if (!pred) return;
-      const pts=calcPts(pred,r);
-      const cls=pts===5?'b-exact':pts===3?'b-correct':pts===1?'b-partial':'b-wrong';
+      const pts=calcPts(pred,r,f);
+      const cls='b-'+ptsCategory(pts,f);
       const isMe=m.name===me;
       // Show as "HomeName H–A AwayName" so direction is always clear
       h+=`<span style="font-size:12px;display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:7px;background:#f5f5f7;${isMe?'border:1.5px solid #185fa5;':''}">${m.name}: <span style="color:#666;font-size:11px">${f.home.split(' ')[0]}</span> <strong>${pred.h}–${pred.a}</strong> <span style="color:#666;font-size:11px">${f.away.split(' ')[0]}</span> <span class="badge ${cls}" style="font-size:10px;padding:1px 5px">+${pts}p</span></span>`;
